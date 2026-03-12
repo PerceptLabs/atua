@@ -20,6 +20,13 @@ export type { ProviderConfig, ProviderHandler } from './providers/base-provider.
 export { createAtuaFsProvider } from './providers/atua-fs-provider.js';
 export { createAtuaD1Provider } from './providers/atua-d1-provider.js';
 export { createAtuaBuildProvider } from './providers/atua-build-provider.js';
+export { createAtuaProcProvider } from './providers/atua-proc-provider.js';
+export { createAtuaPkgProvider } from './providers/atua-pkg-provider.js';
+export { createAtuaNetProvider } from './providers/atua-net-provider.js';
+export { createAtuaPreviewProvider } from './providers/atua-preview-provider.js';
+export type { PreviewController } from './providers/atua-preview-provider.js';
+export { createAtuaTelemetryProvider } from './providers/atua-telemetry-provider.js';
+export { createAtuaMetaProvider } from './providers/atua-meta-provider.js';
 
 // Types
 export type {
