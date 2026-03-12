@@ -5,11 +5,11 @@
  * get, put, delete, list, getWithMetadata
  */
 import { describe, it, expect, afterEach } from 'vitest';
-import { CatalystWorkers } from '../../../workers/catalyst-workers/src/runtime.js';
-import { CatalystKV } from '../../../workers/catalyst-workers/src/bindings/kv.js';
-import type { WorkerModule } from '../../../workers/catalyst-workers/src/runtime.js';
+import { AtuaWorkers } from '../../../workers/atua-workers/src/runtime.js';
+import { AtuaKV } from '../../../workers/atua-workers/src/bindings/kv.js';
+import type { WorkerModule } from '../../../workers/atua-workers/src/runtime.js';
 
-let runtime: CatalystWorkers | null = null;
+let runtime: AtuaWorkers | null = null;
 
 afterEach(async () => {
   if (runtime) {
@@ -24,7 +24,7 @@ function req(path: string, init?: RequestInit): Request {
 
 describe('Workers Compliance — KV Binding', () => {
   it('KV has get/put/delete/list methods', async () => {
-    const kv = new CatalystKV();
+    const kv = new AtuaKV();
 
     const worker: WorkerModule = {
       default: {
@@ -41,7 +41,7 @@ describe('Workers Compliance — KV Binding', () => {
       },
     };
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: {
         w: {
           module: worker,
@@ -61,7 +61,7 @@ describe('Workers Compliance — KV Binding', () => {
   });
 
   it('KV put/get round-trip', async () => {
-    const kv = new CatalystKV();
+    const kv = new AtuaKV();
 
     const worker: WorkerModule = {
       default: {
@@ -80,7 +80,7 @@ describe('Workers Compliance — KV Binding', () => {
       },
     };
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: {
         w: {
           module: worker,
@@ -97,7 +97,7 @@ describe('Workers Compliance — KV Binding', () => {
   });
 
   it('KV delete removes key', async () => {
-    const kv = new CatalystKV();
+    const kv = new AtuaKV();
     await kv.put('to-delete', 'exists');
 
     const worker: WorkerModule = {
@@ -110,7 +110,7 @@ describe('Workers Compliance — KV Binding', () => {
       },
     };
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: {
         w: {
           module: worker,
@@ -126,7 +126,7 @@ describe('Workers Compliance — KV Binding', () => {
   });
 
   it('KV list returns keys', async () => {
-    const kv = new CatalystKV();
+    const kv = new AtuaKV();
     await kv.put('list-a', 'val-a');
     await kv.put('list-b', 'val-b');
 
@@ -142,7 +142,7 @@ describe('Workers Compliance — KV Binding', () => {
       },
     };
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: {
         w: {
           module: worker,
@@ -160,7 +160,7 @@ describe('Workers Compliance — KV Binding', () => {
   });
 
   it('KV getWithMetadata returns value and metadata', async () => {
-    const kv = new CatalystKV();
+    const kv = new AtuaKV();
     await kv.put('meta-key', 'meta-value', { metadata: { created: 'now' } });
 
     const worker: WorkerModule = {
@@ -175,7 +175,7 @@ describe('Workers Compliance — KV Binding', () => {
       },
     };
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: {
         w: {
           module: worker,

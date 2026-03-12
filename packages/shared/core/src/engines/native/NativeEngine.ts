@@ -10,14 +10,14 @@
  * In test environments (Node.js), falls back to inline execution
  * via new Function() since real Web Workers aren't available.
  */
-import type { CatalystFS } from '../../fs/CatalystFS.js';
+import type { AtuaFS } from '../../fs/AtuaFS.js';
 import type { FetchProxy } from '../../net/FetchProxy.js';
 import type { IEngine, IModuleLoader, EngineInstanceConfig } from '../../engine/interfaces.js';
 import { NativeModuleLoader } from './NativeModuleLoader.js';
 import { getWorkerBootstrapSource } from './WorkerBootstrap.js';
 
 export interface NativeEngineConfig {
-  fs?: CatalystFS;
+  fs?: AtuaFS;
   fetchProxy?: FetchProxy;
   memoryLimit?: number;
   timeout?: number;
@@ -29,7 +29,7 @@ export interface NativeEngineConfig {
 type EventHandler = (...args: unknown[]) => void;
 
 export class NativeEngine implements IEngine {
-  private fs?: CatalystFS;
+  private fs?: AtuaFS;
   private fetchProxy?: FetchProxy;
   private _disposed = false;
   private _initialized = false;
@@ -153,7 +153,7 @@ export class NativeEngine implements IEngine {
   }
 
   /**
-   * Build fs module exports that delegate to CatalystFS.
+   * Build fs module exports that delegate to AtuaFS.
    */
   private _buildFsExports(): Record<string, unknown> {
     const fs = this.fs!;
@@ -200,7 +200,7 @@ export class NativeEngine implements IEngine {
 
   async createInstance(config: EngineInstanceConfig): Promise<IEngine> {
     return NativeEngine.create({
-      fs: config.fs as CatalystFS | undefined,
+      fs: config.fs as AtuaFS | undefined,
       fetchProxy: config.net as FetchProxy | undefined,
       moduleLoader: config.moduleLoader,
       timeout: config.timeout,
@@ -376,7 +376,7 @@ export class NativeEngine implements IEngine {
       argv0: 'node',
       execArgv: [],
       execPath: '/usr/local/bin/node',
-      title: 'catalyst',
+      title: 'atua',
       exit: (code: number) => { this.emit('exit', code ?? 0); },
       nextTick: (fn: (...args: unknown[]) => void, ...args: unknown[]) => {
         Promise.resolve().then(() => fn(...args));

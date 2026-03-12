@@ -2,28 +2,28 @@
  * ViteRunner — Runs Vite dev server inside the browser WASM runtime
  *
  * Bridges between Vite's expectations and the browser environment:
- *   - CatalystFS provides the virtual filesystem (fs.watch, fs.readFile, etc.)
+ *   - AtuaFS provides the virtual filesystem (fs.watch, fs.readFile, etc.)
  *   - CatalystNet (Service Worker) intercepts HTTP requests to the dev server
  *   - HMR WebSocket emulated through MessageChannel
- *   - File changes detected via CatalystFS FileSystemObserver
+ *   - File changes detected vian AtuaFS FileSystemObserver
  *
  * The flow:
- *   1. User edits file in IDE → CatalystFS write
+ *   1. User edits file in IDE → AtuaFS write
  *   2. FileSystemObserver fires → Vite detects change
  *   3. Vite processes HMR update → WebSocket push
  *   4. Preview iframe applies hot update
  */
-import type { CatalystFS } from '../../fs/CatalystFS.js';
+import type { AtuaFS } from '../../fs/AtuaFS.js';
 import type { IEngine } from '../../engine/interfaces.js';
 
 export type ViteRunnerStatus = 'idle' | 'starting' | 'running' | 'stopping' | 'stopped' | 'error';
 
 export interface ViteRunnerConfig {
   /** Virtual filesystem */
-  fs: CatalystFS;
+  fs: AtuaFS;
   /** JavaScript engine for running Vite */
   engine?: IEngine;
-  /** Project root in CatalystFS (default: '/project') */
+  /** Project root in AtuaFS (default: '/project') */
   root?: string;
   /** Dev server port (for Service Worker routing) */
   port?: number;

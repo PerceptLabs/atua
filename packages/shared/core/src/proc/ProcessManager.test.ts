@@ -5,13 +5,13 @@
  * worker template generation, StdioBatcher logic, and new Worker methods.
  */
 import { describe, it, expect, vi } from 'vitest';
-import { CatalystProcess, type Signal, type ProcessState } from './CatalystProcess.js';
+import { AtuaProcess, type Signal, type ProcessState } from './AtuaProcess.js';
 import { getWorkerSource, getEnhancedWorkerSource, SIGNALS } from './worker-template.js';
 import { StdioBatcher } from './StdioBatcher.js';
 
-describe('CatalystProcess — State Machine', () => {
+describe('AtuaProcess — State Machine', () => {
   it('should start in "starting" state', () => {
-    const proc = new CatalystProcess(1);
+    const proc = new AtuaProcess(1);
     expect(proc.pid).toBe(1);
     expect(proc.state).toBe('starting');
     expect(proc.exitCode).toBeNull();
@@ -20,21 +20,21 @@ describe('CatalystProcess — State Machine', () => {
   });
 
   it('should transition to "exited" state', () => {
-    const proc = new CatalystProcess(1);
+    const proc = new AtuaProcess(1);
     proc._exit(0);
     expect(proc.state).toBe('exited');
     expect(proc.exitCode).toBe(0);
   });
 
   it('should transition to "exited" with non-zero code', () => {
-    const proc = new CatalystProcess(2);
+    const proc = new AtuaProcess(2);
     proc._exit(1);
     expect(proc.state).toBe('exited');
     expect(proc.exitCode).toBe(1);
   });
 
   it('should transition to "killed" state on SIGTERM', () => {
-    const proc = new CatalystProcess(3);
+    const proc = new AtuaProcess(3);
     proc._setEngine({ on: () => {}, dispose: () => {} } as any);
     proc.kill('SIGTERM');
     expect(proc.state).toBe('killed');
@@ -42,7 +42,7 @@ describe('CatalystProcess — State Machine', () => {
   });
 
   it('should transition to "killed" state on SIGKILL', () => {
-    const proc = new CatalystProcess(4);
+    const proc = new AtuaProcess(4);
     proc._setEngine({ on: () => {}, dispose: () => {} } as any);
     proc.kill('SIGKILL');
     expect(proc.state).toBe('killed');
@@ -50,7 +50,7 @@ describe('CatalystProcess — State Machine', () => {
   });
 
   it('should not allow kill on non-running process', () => {
-    const proc = new CatalystProcess(5);
+    const proc = new AtuaProcess(5);
     proc._exit(0);
     const result = proc.kill('SIGTERM');
     expect(result).toBe(false);
@@ -59,7 +59,7 @@ describe('CatalystProcess — State Machine', () => {
   });
 
   it('should not exit twice', () => {
-    const proc = new CatalystProcess(6);
+    const proc = new AtuaProcess(6);
     const exitCodes: number[] = [];
     proc.on('exit', (code: number) => exitCodes.push(code));
 
@@ -70,9 +70,9 @@ describe('CatalystProcess — State Machine', () => {
   });
 });
 
-describe('CatalystProcess — Events', () => {
+describe('AtuaProcess — Events', () => {
   it('should emit exit event', () => {
-    const proc = new CatalystProcess(10);
+    const proc = new AtuaProcess(10);
     let exitCode: number | null = null;
     proc.on('exit', (code: number) => {
       exitCode = code;
@@ -82,7 +82,7 @@ describe('CatalystProcess — Events', () => {
   });
 
   it('should emit exit event with signal on kill', () => {
-    const proc = new CatalystProcess(11);
+    const proc = new AtuaProcess(11);
     let exitCode: number | null = null;
     let exitSignal: string | null = null;
     proc.on('exit', (code: number, signal?: string) => {
@@ -96,7 +96,7 @@ describe('CatalystProcess — Events', () => {
   });
 
   it('should support once() for one-time listeners', () => {
-    const proc = new CatalystProcess(12);
+    const proc = new AtuaProcess(12);
     let count = 0;
     proc.once('exit', () => count++);
     proc._exit(0);
@@ -104,7 +104,7 @@ describe('CatalystProcess — Events', () => {
   });
 
   it('should support off() to remove listeners', () => {
-    const proc = new CatalystProcess(13);
+    const proc = new AtuaProcess(13);
     let count = 0;
     const handler = () => count++;
     proc.on('exit', handler);
@@ -114,9 +114,9 @@ describe('CatalystProcess — Events', () => {
   });
 });
 
-describe('CatalystProcess — Stdio Buffering', () => {
+describe('AtuaProcess — Stdio Buffering', () => {
   it('should collect stdout chunks', () => {
-    const proc = new CatalystProcess(20);
+    const proc = new AtuaProcess(20);
     const consoleHandlers: any[] = [];
     proc._setEngine({
       on: (event: string, handler: any) => {
@@ -135,7 +135,7 @@ describe('CatalystProcess — Stdio Buffering', () => {
   });
 
   it('should collect stderr chunks', () => {
-    const proc = new CatalystProcess(21);
+    const proc = new AtuaProcess(21);
     const consoleHandlers: any[] = [];
     proc._setEngine({
       on: (event: string, handler: any) => {
@@ -153,7 +153,7 @@ describe('CatalystProcess — Stdio Buffering', () => {
   });
 
   it('should stream stdout events in real-time', () => {
-    const proc = new CatalystProcess(22);
+    const proc = new AtuaProcess(22);
     const chunks: string[] = [];
     proc.on('stdout', (data: string) => chunks.push(data));
 
@@ -174,23 +174,23 @@ describe('CatalystProcess — Stdio Buffering', () => {
   });
 });
 
-describe('CatalystProcess — Worker methods', () => {
+describe('AtuaProcess — Worker methods', () => {
   it('_pushStdout should append to stdout', () => {
-    const proc = new CatalystProcess(50);
+    const proc = new AtuaProcess(50);
     proc._pushStdout('line 1\n');
     proc._pushStdout('line 2\n');
     expect(proc.stdout).toBe('line 1\nline 2\n');
   });
 
   it('_pushStderr should append to stderr', () => {
-    const proc = new CatalystProcess(51);
+    const proc = new AtuaProcess(51);
     proc._pushStderr('err 1\n');
     proc._pushStderr('err 2\n');
     expect(proc.stderr).toBe('err 1\nerr 2\n');
   });
 
   it('_pushStdout should emit stdout event', () => {
-    const proc = new CatalystProcess(52);
+    const proc = new AtuaProcess(52);
     const chunks: string[] = [];
     proc.on('stdout', (data: string) => chunks.push(data));
     proc._pushStdout('hello\n');
@@ -198,7 +198,7 @@ describe('CatalystProcess — Worker methods', () => {
   });
 
   it('_pushStderr should emit stderr event', () => {
-    const proc = new CatalystProcess(53);
+    const proc = new AtuaProcess(53);
     const chunks: string[] = [];
     proc.on('stderr', (data: string) => chunks.push(data));
     proc._pushStderr('error\n');
@@ -206,16 +206,16 @@ describe('CatalystProcess — Worker methods', () => {
   });
 
   it('_setState should update state', () => {
-    const proc = new CatalystProcess(54);
+    const proc = new AtuaProcess(54);
     expect(proc.state).toBe('starting');
     proc._setState('running');
     expect(proc.state).toBe('running');
   });
 });
 
-describe('CatalystProcess — Uptime', () => {
+describe('AtuaProcess — Uptime', () => {
   it('should track uptime', async () => {
-    const proc = new CatalystProcess(30);
+    const proc = new AtuaProcess(30);
     await new Promise((r) => setTimeout(r, 50));
     expect(proc.uptime).toBeGreaterThanOrEqual(40);
   });
@@ -258,25 +258,25 @@ describe('Worker Template', () => {
 describe('Process States', () => {
   it('should have valid state transitions', () => {
     // starting → running (via _setEngine)
-    const proc1 = new CatalystProcess(40);
+    const proc1 = new AtuaProcess(40);
     expect(proc1.state).toBe('starting');
     proc1._setEngine({ on: () => {}, dispose: () => {} } as any);
     expect(proc1.state).toBe('running');
 
     // running → exited (via _exit)
-    const proc2 = new CatalystProcess(41);
+    const proc2 = new AtuaProcess(41);
     proc2._setEngine({ on: () => {}, dispose: () => {} } as any);
     proc2._exit(0);
     expect(proc2.state).toBe('exited');
 
     // running → killed (via kill)
-    const proc3 = new CatalystProcess(42);
+    const proc3 = new AtuaProcess(42);
     proc3._setEngine({ on: () => {}, dispose: () => {} } as any);
     proc3.kill('SIGTERM');
     expect(proc3.state).toBe('killed');
 
     // starting → running (via _setState for Worker flow)
-    const proc4 = new CatalystProcess(43);
+    const proc4 = new AtuaProcess(43);
     proc4._setState('running');
     expect(proc4.state).toBe('running');
   });

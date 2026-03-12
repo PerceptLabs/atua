@@ -1,0 +1,12 @@
+{
+  "name": "nitro-basic-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npx nitropack build"
+  },
+  "devDependencies": {
+    "nitropack": "^2.0.0",
+    "@aspect/nitro-preset-atua": "workspace:*"
+  }
+}

@@ -5,8 +5,8 @@
  * Measures boot time, eval speed, and reports against targets.
  */
 import { describe, it, expect, afterAll } from 'vitest';
-import { CatalystEngine } from '../engine/CatalystEngine.js';
-import { CatalystFS } from '../fs/CatalystFS.js';
+import { AtuaEngine } from '../engine/AtuaEngine.js';
+import { AtuaFS } from '../fs/AtuaFS.js';
 import { DenoEngine } from '../../../../engines/deno/src/engine.js';
 import { DenoWasmLoader } from '../../../../engines/deno/src/wasm-loader.js';
 
@@ -49,9 +49,9 @@ describe('Engine Benchmarks — QuickJS Boot', () => {
   it('measures QuickJS cold boot time', async () => {
     const times: number[] = [];
     for (let i = 0; i < 3; i++) {
-      const fs = await CatalystFS.create(`bench-qjs-boot-${Date.now()}-${i}`);
+      const fs = await AtuaFS.create(`bench-qjs-boot-${Date.now()}-${i}`);
       const start = performance.now();
-      const engine = await CatalystEngine.create({ fs });
+      const engine = await AtuaEngine.create({ fs });
       times.push(performance.now() - start);
       await engine.destroy();
       fs.destroy();
@@ -78,8 +78,8 @@ describe('Engine Benchmarks — Deno Boot', () => {
 
 describe('Engine Benchmarks — QuickJS Eval', () => {
   it('measures simple eval throughput', async () => {
-    const fs = await CatalystFS.create(`bench-qjs-eval-${Date.now()}`);
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create(`bench-qjs-eval-${Date.now()}`);
+    const engine = await AtuaEngine.create({ fs });
     const times: number[] = [];
 
     for (let i = 0; i < 20; i++) {
@@ -97,8 +97,8 @@ describe('Engine Benchmarks — QuickJS Eval', () => {
   });
 
   it('measures complex eval throughput', async () => {
-    const fs = await CatalystFS.create(`bench-qjs-complex-${Date.now()}`);
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create(`bench-qjs-complex-${Date.now()}`);
+    const engine = await AtuaEngine.create({ fs });
     const times: number[] = [];
 
     const code = `(function() {
@@ -162,9 +162,9 @@ describe('Engine Benchmarks — Deno Eval', () => {
   });
 });
 
-describe('Engine Benchmarks — CatalystFS Operations', () => {
+describe('Engine Benchmarks — AtuaFS Operations', () => {
   it('measures filesystem write throughput', async () => {
-    const fs = await CatalystFS.create(`bench-fs-write-${Date.now()}`);
+    const fs = await AtuaFS.create(`bench-fs-write-${Date.now()}`);
     const times: number[] = [];
     const data = 'x'.repeat(1024);
 
@@ -182,7 +182,7 @@ describe('Engine Benchmarks — CatalystFS Operations', () => {
   });
 
   it('measures filesystem read throughput', async () => {
-    const fs = await CatalystFS.create(`bench-fs-read-${Date.now()}`);
+    const fs = await AtuaFS.create(`bench-fs-read-${Date.now()}`);
     const data = 'x'.repeat(1024);
     fs.writeFileSync('/bench-read.txt', data);
     const times: number[] = [];
@@ -203,8 +203,8 @@ describe('Engine Benchmarks — CatalystFS Operations', () => {
 
 describe('Engine Benchmarks — Engine Capabilities', () => {
   it('reports QuickJS capabilities', async () => {
-    const fs = await CatalystFS.create(`bench-qjs-caps-${Date.now()}`);
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create(`bench-qjs-caps-${Date.now()}`);
+    const engine = await AtuaEngine.create({ fs });
     // QuickJS doesn't have a static capabilities() method, but it boots and runs
     expect(engine).toBeDefined();
     await engine.destroy();

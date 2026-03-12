@@ -4,10 +4,10 @@
 import { describe, it, expect } from 'vitest';
 import { NpmProcessRunner, type ScriptPhase } from './NpmProcessRunner.js';
 import { ProcessManager } from '../proc/ProcessManager.js';
-import { CatalystFS } from '../fs/CatalystFS.js';
+import { AtuaFS } from '../fs/AtuaFS.js';
 
 async function createRunner(config: ConstructorParameters<typeof NpmProcessRunner>[2] = {}) {
-  const fs = await CatalystFS.create('npm-runner-test');
+  const fs = await AtuaFS.create('npm-runner-test');
   const pm = new ProcessManager(fs);
   return { runner: new NpmProcessRunner(pm, fs, config), fs, pm };
 }

@@ -12,7 +12,7 @@
  * Generates appropriate vite.config for each framework and manages
  * the dev → build → preview lifecycle.
  */
-import type { CatalystFS } from '../../fs/CatalystFS.js';
+import type { AtuaFS } from '../../fs/AtuaFS.js';
 import { ViteRunner, type ViteRunnerConfig, type FrameworkMode, type ViteDevServer } from './ViteRunner.js';
 
 export interface FrameworkDetectionResult {
@@ -24,7 +24,7 @@ export interface FrameworkDetectionResult {
 
 export interface FrameworkDevConfig {
   /** Virtual filesystem */
-  fs: CatalystFS;
+  fs: AtuaFS;
   /** Project root (default: '/project') */
   root?: string;
   /** Override framework detection */

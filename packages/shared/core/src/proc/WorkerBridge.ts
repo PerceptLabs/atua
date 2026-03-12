@@ -5,14 +5,14 @@
  * Handles:
  * - Waiting for Worker 'ready' signal
  * - Sending 'exec' and receiving stdout/stderr/exit
- * - Forwarding CatalystFS operations
+ * - Forwarding AtuaFS operations
  * - Timeout enforcement
  *
  * The bridge unpacks StdioBatcher batches ('stdout-batch'/'stderr-batch')
  * and calls onStdout/onStderr per chunk for API compatibility. The batching
- * is invisible to CatalystProcess consumers.
+ * is invisible to AtuaProcess consumers.
  */
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 import type { WorkerHandle } from './WorkerPool.js';
 
 interface FsProxyRequest {
@@ -23,14 +23,14 @@ interface FsProxyRequest {
 
 export class WorkerBridge {
   private readonly handle: WorkerHandle;
-  private readonly fs?: CatalystFS;
+  private readonly fs?: AtuaFS;
   private readyPromise: Promise<void>;
 
-  constructor(handle: WorkerHandle, fs?: CatalystFS) {
+  constructor(handle: WorkerHandle, fs?: AtuaFS) {
     this.handle = handle;
     this.fs = fs;
 
-    // Wire up CatalystFS proxy on the fs MessagePort
+    // Wire up AtuaFS proxy on the fs MessagePort
     if (fs) {
       this.handle.fsPort.onmessage = (event: MessageEvent) => {
         this.handleFsRequest(event.data);
@@ -106,12 +106,12 @@ export class WorkerBridge {
     });
   }
 
-  /** Handle CatalystFS proxy requests from the Worker */
+  /** Handle AtuaFS proxy requests from the Worker */
   private async handleFsRequest(request: FsProxyRequest): Promise<void> {
     if (!this.fs) {
       this.handle.fsPort.postMessage({
         id: request.id,
-        error: 'No CatalystFS available',
+        error: 'No AtuaFS available',
       });
       return;
     }

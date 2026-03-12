@@ -10,7 +10,7 @@ import { Lockfile } from './Lockfile.js';
 import { PackageJson } from './PackageJson.js';
 import { NpmResolver } from './NpmResolver.js';
 import { PackageManager } from './PackageManager.js';
-import { CatalystFS } from '../fs/CatalystFS.js';
+import { AtuaFS } from '../fs/AtuaFS.js';
 
 // ---- Semver ----
 
@@ -494,7 +494,7 @@ function createMockResolver(packages: Record<string, { version: string; code: st
 
 describe('PackageManager — Dev Mode (lockfile auto-generation)', () => {
   it('should install and auto-generate lockfile with SHA-256 integrity', async () => {
-    const fs = await CatalystFS.create('pkg-dev-test-1');
+    const fs = await AtuaFS.create('pkg-dev-test-1');
     const code = 'module.exports = { hello: "world" };';
 
     const pm = new PackageManager({
@@ -524,7 +524,7 @@ describe('PackageManager — Dev Mode (lockfile auto-generation)', () => {
   });
 
   it('should serve subsequent requests from cache', async () => {
-    const fs = await CatalystFS.create('pkg-dev-test-2');
+    const fs = await AtuaFS.create('pkg-dev-test-2');
     const code = 'module.exports = 42;';
 
     const pm = new PackageManager({
@@ -545,7 +545,7 @@ describe('PackageManager — Dev Mode (lockfile auto-generation)', () => {
   });
 
   it('dev mode is backward-compatible (default mode)', async () => {
-    const fs = await CatalystFS.create('pkg-dev-test-3');
+    const fs = await AtuaFS.create('pkg-dev-test-3');
     const code = 'module.exports = {};';
 
     // No mode specified — defaults to dev
@@ -565,7 +565,7 @@ describe('PackageManager — Dev Mode (lockfile auto-generation)', () => {
 
 describe('PackageManager — Locked Mode', () => {
   it('should throw on missing lockfile', async () => {
-    const fs = await CatalystFS.create('pkg-locked-test-1');
+    const fs = await AtuaFS.create('pkg-locked-test-1');
 
     expect(() => new PackageManager({
       fs,
@@ -576,7 +576,7 @@ describe('PackageManager — Locked Mode', () => {
   });
 
   it('should resolve from lockfile in locked mode', async () => {
-    const fs = await CatalystFS.create('pkg-locked-test-2');
+    const fs = await AtuaFS.create('pkg-locked-test-2');
     const code = 'module.exports = "locked";';
     const hash = await sha256(code);
 
@@ -588,7 +588,7 @@ describe('PackageManager — Locked Mode', () => {
       integrity: hash,
       dependencies: {},
     });
-    lf.write(fs, '/catalyst-lock.json');
+    lf.write(fs, '/atua-lock.json');
 
     const pm = new PackageManager({
       fs,
@@ -604,7 +604,7 @@ describe('PackageManager — Locked Mode', () => {
   });
 
   it('should reject unknown package in locked mode', async () => {
-    const fs = await CatalystFS.create('pkg-locked-test-3');
+    const fs = await AtuaFS.create('pkg-locked-test-3');
 
     // Write a lockfile with one package
     const lf = new Lockfile();
@@ -614,7 +614,7 @@ describe('PackageManager — Locked Mode', () => {
       integrity: '',
       dependencies: {},
     });
-    lf.write(fs, '/catalyst-lock.json');
+    lf.write(fs, '/atua-lock.json');
 
     const pm = new PackageManager({
       fs,
@@ -627,7 +627,7 @@ describe('PackageManager — Locked Mode', () => {
   });
 
   it('should throw on integrity hash mismatch', async () => {
-    const fs = await CatalystFS.create('pkg-locked-test-4');
+    const fs = await AtuaFS.create('pkg-locked-test-4');
     const originalCode = 'module.exports = "original";';
     const tamperedCode = 'module.exports = "tampered";';
     const originalHash = await sha256(originalCode);
@@ -640,7 +640,7 @@ describe('PackageManager — Locked Mode', () => {
       integrity: originalHash,
       dependencies: {},
     });
-    lf.write(fs, '/catalyst-lock.json');
+    lf.write(fs, '/atua-lock.json');
 
     // But fetcher returns tampered code
     const pm = new PackageManager({
@@ -657,7 +657,7 @@ describe('PackageManager — Locked Mode', () => {
 
 describe('Lockfile — Round-trip integrity', () => {
   it('lockfile survives generate → read → resolve → all hashes match', async () => {
-    const fs = await CatalystFS.create('pkg-roundtrip-test');
+    const fs = await AtuaFS.create('pkg-roundtrip-test');
     const codeA = 'module.exports = "a";';
     const codeB = 'module.exports = "b";';
     const hashA = await sha256(codeA);
@@ -678,7 +678,7 @@ describe('Lockfile — Round-trip integrity', () => {
     await devPm.install('pkg-b');
 
     // Step 2: Read lockfile back
-    const lockfileContent = fs.readFileSync('/catalyst-lock.json', 'utf-8') as string;
+    const lockfileContent = fs.readFileSync('/atua-lock.json', 'utf-8') as string;
     const parsed = JSON.parse(lockfileContent);
     expect(parsed.packages['pkg-a'].integrity).toBe(hashA);
     expect(parsed.packages['pkg-b'].integrity).toBe(hashB);

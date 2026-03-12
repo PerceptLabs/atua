@@ -4,13 +4,13 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { FrameworkDevMode } from './FrameworkDevMode.js';
-import { CatalystFS } from '../../fs/CatalystFS.js';
+import { AtuaFS } from '../../fs/AtuaFS.js';
 
-let fs: CatalystFS;
+let fs: AtuaFS;
 let mode: FrameworkDevMode;
 
 beforeEach(async () => {
-  fs = await CatalystFS.create(`fw-test-${Date.now()}`);
+  fs = await AtuaFS.create(`fw-test-${Date.now()}`);
   fs.mkdirSync('/project', { recursive: true });
   fs.mkdirSync('/project/src', { recursive: true });
   mode = new FrameworkDevMode({ fs, root: '/project' });

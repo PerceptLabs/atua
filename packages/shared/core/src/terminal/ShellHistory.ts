@@ -9,7 +9,7 @@ export interface ShellHistoryConfig {
   maxEntries?: number;
   /** Persistence key for OPFS storage */
   persistKey?: string;
-  /** Filesystem for persistence (CatalystFS) */
+  /** Filesystem for persistence (AtuaFS) */
   fs?: unknown;
 }
 

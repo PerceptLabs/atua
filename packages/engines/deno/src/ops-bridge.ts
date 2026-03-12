@@ -2,8 +2,8 @@
  * Deno Ops Bridge — Maps Deno's op system to browser APIs
  *
  * Each op category gets a browser API backend:
- *   op_read_file  → CatalystFS (OPFS)
- *   op_write_file → CatalystFS (OPFS)
+ *   op_read_file  → AtuaFS (OPFS)
+ *   op_write_file → AtuaFS (OPFS)
  *   op_fetch      → native fetch / CatalystNet
  *   op_crypto_*   → Web Crypto API
  *   op_timer_*    → setTimeout/setInterval

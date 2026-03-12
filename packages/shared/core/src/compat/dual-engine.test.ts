@@ -1,26 +1,26 @@
 /**
  * Dual-Engine Test Validation — Phase 22a
  *
- * Verifies that both QuickJS (CatalystEngine) and DenoEngine (stub mode)
+ * Verifies that both QuickJS (AtuaEngine) and DenoEngine (stub mode)
  * produce equivalent results for the same JavaScript evaluation tasks.
  *
  * Both engines now use script-mode evaluation (last expression value returned).
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { CatalystEngine } from '../engine/CatalystEngine.js';
-import { CatalystFS } from '../fs/CatalystFS.js';
+import { AtuaEngine } from '../engine/AtuaEngine.js';
+import { AtuaFS } from '../fs/AtuaFS.js';
 import { DenoEngine } from '../../../../engines/deno/src/engine.js';
 import { DenoWasmLoader } from '../../../../engines/deno/src/wasm-loader.js';
 import type { IEngine } from '../engine/interfaces.js';
 
-let fs: CatalystFS;
+let fs: AtuaFS;
 let quickjs: IEngine;
 let deno: IEngine;
 
 beforeAll(async () => {
-  fs = await CatalystFS.create(`dual-engine-${Date.now()}`);
+  fs = await AtuaFS.create(`dual-engine-${Date.now()}`);
   DenoWasmLoader.reset();
-  quickjs = await CatalystEngine.create({ fs });
+  quickjs = await AtuaEngine.create({ fs });
   deno = await DenoEngine.create({ fs });
 });
 

@@ -8,7 +8,7 @@
  * All Hono middleware, routing, error boundaries, and the full Context API
  * now work in the Service Worker.
  */
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 import type { BuildPipeline, Transpiler } from './BuildPipeline.js';
 import { HONO_CORE_BUNDLE, HONO_CORS_BUNDLE, HONO_PACKAGE_JSON } from './hono-bundle.js';
 
@@ -31,14 +31,14 @@ export interface HonoBuildResult {
 }
 
 export class HonoIntegration {
-  private readonly fs: CatalystFS;
+  private readonly fs: AtuaFS;
   private readonly pipeline: BuildPipeline;
   private readonly apiDir: string;
   private readonly entryPoint: string;
   private readonly outputPath: string;
 
   constructor(
-    fs: CatalystFS,
+    fs: AtuaFS,
     pipeline: BuildPipeline,
     config: HonoIntegrationConfig = {},
   ) {
@@ -154,8 +154,8 @@ export class HonoIntegration {
   }
 
   /**
-   * Ensure Hono package is available in CatalystFS /node_modules/hono/.
-   * Pre-bundled with Catalyst — no network needed.
+   * Ensure Hono package is available in AtuaFS /node_modules/hono/.
+   * Pre-bundled with Atua — no network needed.
    */
   ensureHono(): void {
     const honoIndex = '/node_modules/hono/dist/cjs/index.js';
@@ -178,13 +178,13 @@ export class HonoIntegration {
    * 2. Provides require() that resolves 'hono' and 'hono/cors'
    * 3. Transforms user's ESM import statements to require() calls
    * 4. Executes user code
-   * 5. Wires up self.catalystApiHandler = app.fetch.bind(app)
+   * 5. Wires up self.atuaApiHandler = app.fetch.bind(app)
    */
   private createHonoWrapper(source: string, filePath: string): string {
     // Transform ESM imports to CommonJS require calls
     const transformed = this.transformImports(source);
 
-    return `// Catalyst API Bundle — Real Hono v4.12.3
+    return `// Atua API Bundle — Real Hono v4.12.3
 // Source: ${filePath}
 (function() {
   'use strict';
@@ -211,7 +211,7 @@ export class HonoIntegration {
   // --- CommonJS require shim ---
   function require(name) {
     if (__honoModules[name]) return __honoModules[name];
-    throw new Error('[catalyst] Module not found: ' + name);
+    throw new Error('[atua] Module not found: ' + name);
   }
 
   // --- User API code ---
@@ -220,11 +220,11 @@ ${transformed}
 
   // --- Wire up handler ---
   if (typeof app !== 'undefined' && typeof app.fetch === 'function') {
-    self.catalystApiHandler = function(request, env) {
+    self.atuaApiHandler = function(request, env) {
       return app.fetch(request, env);
     };
   } else {
-    console.error('[catalyst] No Hono app found. Export your app as "app".');
+    console.error('[atua] No Hono app found. Export your app as "app".');
   }
 })();
 `;

@@ -1,7 +1,7 @@
 /**
  * PackageJson — Parse and validate package.json files
  */
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 
 export interface PackageJsonData {
   name?: string;
@@ -27,7 +27,7 @@ export class PackageJson {
     return new PackageJson(data);
   }
 
-  static read(fs: CatalystFS, path = '/package.json'): PackageJson {
+  static read(fs: AtuaFS, path = '/package.json'): PackageJson {
     const content = fs.readFileSync(path, 'utf-8') as string;
     return PackageJson.parse(content);
   }

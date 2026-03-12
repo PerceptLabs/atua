@@ -1,13 +1,13 @@
 /**
  * FetchProxy — Browser tests
- * Tests end-to-end fetch through QuickJS via CatalystEngine + FetchProxy.
+ * Tests end-to-end fetch through QuickJS vian AtuaEngine + FetchProxy.
  * Uses a MockFetchProxy to avoid network dependencies while testing
  * the full pipeline: QuickJS async eval → deferred promises → response → result.
  *
  * Runs in real Chromium via Vitest browser mode.
  */
 import { describe, it, expect } from 'vitest';
-import { CatalystEngine } from '../engine/CatalystEngine.js';
+import { AtuaEngine } from '../engine/AtuaEngine.js';
 import {
   FetchProxy,
   FetchBlockedError,
@@ -82,7 +82,7 @@ describe('FetchProxy — QuickJS Fetch Integration', () => {
     const fetchProxy = new MockFetchProxy();
     fetchProxy.addMock('todos/1', mockJsonResponse({ userId: 1, id: 1, title: 'test', completed: false }));
 
-    const engine = await CatalystEngine.create({ fetchProxy });
+    const engine = await AtuaEngine.create({ fetchProxy });
     const result = await engine.evalAsync(`
       var response = await fetch('https://api.example.com/todos/1');
       var data = await response.json();
@@ -104,7 +104,7 @@ describe('FetchProxy — QuickJS Fetch Integration', () => {
       body: 'Hello from mock!',
     });
 
-    const engine = await CatalystEngine.create({ fetchProxy });
+    const engine = await AtuaEngine.create({ fetchProxy });
     const result = await engine.evalAsync(`
       var response = await fetch('https://api.example.com/text-endpoint');
       var text = await response.text();
@@ -119,7 +119,7 @@ describe('FetchProxy — QuickJS Fetch Integration', () => {
     const fetchProxy = new MockFetchProxy();
     fetchProxy.addMock('status-check', mockJsonResponse({ ok: true }, 200));
 
-    const engine = await CatalystEngine.create({ fetchProxy });
+    const engine = await AtuaEngine.create({ fetchProxy });
     const result = await engine.evalAsync(`
       var response = await fetch('https://api.example.com/status-check');
       response.ok + ':' + response.status;
@@ -133,7 +133,7 @@ describe('FetchProxy — QuickJS Fetch Integration', () => {
     const fetchProxy = new MockFetchProxy();
     fetchProxy.addMock('not-found', mockJsonResponse({ error: 'Not Found' }, 404));
 
-    const engine = await CatalystEngine.create({ fetchProxy });
+    const engine = await AtuaEngine.create({ fetchProxy });
     const result = await engine.evalAsync(`
       var response = await fetch('https://api.example.com/not-found');
       response.ok + ':' + response.status;
@@ -147,7 +147,7 @@ describe('FetchProxy — QuickJS Fetch Integration', () => {
 describe('FetchProxy — Blocked Domains (Browser)', () => {
   it('should throw on blocked domain', async () => {
     const fetchProxy = new MockFetchProxy({ blocklist: ['evil.example.com'] });
-    const engine = await CatalystEngine.create({ fetchProxy });
+    const engine = await AtuaEngine.create({ fetchProxy });
 
     await expect(
       engine.evalAsync(`
@@ -162,7 +162,7 @@ describe('FetchProxy — Blocked Domains (Browser)', () => {
     const fetchProxy = new MockFetchProxy({ allowlist: ['allowed.example.com'] });
     fetchProxy.addMock('data', mockJsonResponse({ ok: true }));
 
-    const engine = await CatalystEngine.create({ fetchProxy });
+    const engine = await AtuaEngine.create({ fetchProxy });
 
     await expect(
       engine.evalAsync(`
@@ -177,7 +177,7 @@ describe('FetchProxy — Blocked Domains (Browser)', () => {
     const fetchProxy = new MockFetchProxy({ allowlist: ['allowed.example.com'] });
     fetchProxy.addMock('data', mockJsonResponse({ value: 42 }));
 
-    const engine = await CatalystEngine.create({ fetchProxy });
+    const engine = await AtuaEngine.create({ fetchProxy });
     const result = await engine.evalAsync(`
       var response = await fetch('https://allowed.example.com/data');
       var data = await response.json();
@@ -194,7 +194,7 @@ describe('FetchProxy — POST with Body', () => {
     const fetchProxy = new MockFetchProxy();
     fetchProxy.addMock('posts', mockJsonResponse({ id: 101, title: 'test', body: 'hello', userId: 1 }));
 
-    const engine = await CatalystEngine.create({ fetchProxy });
+    const engine = await AtuaEngine.create({ fetchProxy });
     const result = await engine.evalAsync(`
       var response = await fetch('https://api.example.com/posts', {
         method: 'POST',
@@ -215,7 +215,7 @@ describe('FetchProxy — Timeout', () => {
     const fetchProxy = new MockFetchProxy();
     fetchProxy.addDelayedMock('slow-endpoint', 50);
 
-    const engine = await CatalystEngine.create({ fetchProxy });
+    const engine = await AtuaEngine.create({ fetchProxy });
 
     await expect(
       engine.evalAsync(`
@@ -234,7 +234,7 @@ describe('FetchProxy — Multiple Sequential Fetches', () => {
     fetchProxy.addMock('todos/2', mockJsonResponse({ id: 2 }));
     fetchProxy.addMock('todos/3', mockJsonResponse({ id: 3 }));
 
-    const engine = await CatalystEngine.create({ fetchProxy });
+    const engine = await AtuaEngine.create({ fetchProxy });
     const result = await engine.evalAsync(`
       var results = [];
       for (var i = 1; i <= 3; i++) {
@@ -253,7 +253,7 @@ describe('FetchProxy — Multiple Sequential Fetches', () => {
     const fetchProxy = new MockFetchProxy();
     fetchProxy.addMock('success', mockJsonResponse({ ok: true }));
 
-    const engine = await CatalystEngine.create({ fetchProxy });
+    const engine = await AtuaEngine.create({ fetchProxy });
     const result = await engine.evalAsync(`
       var success = false;
       try {
@@ -274,7 +274,7 @@ describe('FetchProxy — Multiple Sequential Fetches', () => {
 describe('FetchProxy — evalAsync Expression Capture', () => {
   it('should capture the last expression value', async () => {
     const fetchProxy = new MockFetchProxy();
-    const engine = await CatalystEngine.create({ fetchProxy });
+    const engine = await AtuaEngine.create({ fetchProxy });
 
     // Test without any fetch — just async eval with expression capture
     const result = await engine.evalAsync(`
@@ -291,7 +291,7 @@ describe('FetchProxy — evalAsync Expression Capture', () => {
     const fetchProxy = new MockFetchProxy();
     fetchProxy.addMock('value', mockJsonResponse({ num: 7 }));
 
-    const engine = await CatalystEngine.create({ fetchProxy });
+    const engine = await AtuaEngine.create({ fetchProxy });
     const result = await engine.evalAsync(`
       var response = await fetch('https://api.example.com/value');
       var data = await response.json();

@@ -1,28 +1,28 @@
 /**
  * Node.js Compatibility Matrix — Browser test (Phase 13a: provider-tagged)
  *
- * Runs Node.js API calls through CatalystEngine in real Chromium.
+ * Runs Node.js API calls through AtuaEngine in real Chromium.
  * Reports PASS / FAIL / NOT_IMPLEMENTED per method with provider attribution.
  * Generates a compatibility report with percentages and provider breakdown.
  */
 import { describe, it, expect, afterAll } from 'vitest';
-import { CatalystFS } from '../fs/CatalystFS.js';
-import { CatalystEngine } from '../engine/CatalystEngine.js';
+import { AtuaFS } from '../fs/AtuaFS.js';
+import { AtuaEngine } from '../engine/AtuaEngine.js';
 import { PROVIDER_REGISTRY } from '../engine/host-bindings/unenv-bridge.js';
 
 interface CompatResult {
   module: string;
   method: string;
   status: 'PASS' | 'FAIL' | 'NOT_IMPLEMENTED' | 'NOT_POSSIBLE';
-  provider: 'catalyst' | 'unenv' | 'stub' | 'not_possible';
+  provider: 'atua' | 'unenv' | 'stub' | 'not_possible';
 }
 
 const results: CompatResult[] = [];
 
 function getProvider(mod: string, method: string): CompatResult['provider'] {
   const modRegistry = PROVIDER_REGISTRY[mod];
-  if (!modRegistry) return 'catalyst';
-  return (modRegistry[method] as CompatResult['provider']) || 'catalyst';
+  if (!modRegistry) return 'atua';
+  return (modRegistry[method] as CompatResult['provider']) || 'atua';
 }
 
 function record(module: string, method: string, status: CompatResult['status']) {
@@ -30,17 +30,17 @@ function record(module: string, method: string, status: CompatResult['status']) 
   results.push({ module, method, status, provider });
 }
 
-let engine: CatalystEngine;
-let fs: CatalystFS;
+let engine: AtuaEngine;
+let fs: AtuaFS;
 
 // Shared engine for all compat tests
 const setup = (async () => {
-  fs = await CatalystFS.create('compat-node-' + Date.now());
+  fs = await AtuaFS.create('compat-node-' + Date.now());
   fs.writeFileSync('/test.txt', 'hello world');
   fs.mkdirSync('/testdir', { recursive: true });
   fs.writeFileSync('/testdir/a.txt', 'aaa');
   fs.writeFileSync('/testdir/b.txt', 'bbb');
-  engine = await CatalystEngine.create({ fs });
+  engine = await AtuaEngine.create({ fs });
 })();
 
 async function evalSafe(code: string): Promise<any> {
@@ -421,7 +421,7 @@ afterAll(async () => {
     m.providers[r.provider] = (m.providers[r.provider] || 0) + 1;
   }
 
-  console.log('\n=== Catalyst Node.js Compatibility Report ===');
+  console.log('\n=== Atua Node.js Compatibility Report ===');
   let totalPass = 0;
   let totalCount = 0;
   const globalProviders: Record<string, number> = {};

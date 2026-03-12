@@ -1,7 +1,7 @@
 /**
  * Preview Service Worker
  *
- * Intercepts fetch requests to serve files from CatalystFS.
+ * Intercepts fetch requests to serve files from AtuaFS.
  * Receives a MessagePort from the main thread for filesystem access.
  */
 
@@ -11,8 +11,8 @@
  */
 export function getPreviewSWSource(): string {
   return `
-// Catalyst Preview Service Worker
-// Serves files from CatalystFS via MessagePort
+// Atua Preview Service Worker
+// Serves files from AtuaFS via MessagePort
 
 const MIME_MAP = ${JSON.stringify(getMimeMapForSW())};
 
@@ -23,7 +23,7 @@ let apiHandlerLoaded = false;
 
 // Message handler — receives MessagePort for fs access
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'catalyst-fs-port') {
+  if (event.data && event.data.type === 'atua-fs-port') {
     fsPort = event.data.port;
     fsReady = true;
     // Process any pending requests
@@ -32,17 +32,17 @@ self.addEventListener('message', (event) => {
     }
     pendingRequests = [];
   }
-  if (event.data && event.data.type === 'catalyst-api-code') {
+  if (event.data && event.data.type === 'atua-api-code') {
     try {
-      // Load the API handler code (IIFE that sets self.catalystApiHandler)
+      // Load the API handler code (IIFE that sets self.atuaApiHandler)
       new Function(event.data.code)();
-      apiHandlerLoaded = typeof self.catalystApiHandler === 'function';
+      apiHandlerLoaded = typeof self.atuaApiHandler === 'function';
     } catch (e) {
-      console.error('[Catalyst SW] Failed to load API handler:', e);
+      console.error('[Atua SW] Failed to load API handler:', e);
     }
   }
-  if (event.data && event.data.type === 'catalyst-api-env') {
-    self.__catalystEnv = event.data.env || {};
+  if (event.data && event.data.type === 'atua-api-env') {
+    self.__atuaEnv = event.data.env || {};
   }
 });
 
@@ -68,7 +68,7 @@ function waitForFs() {
   });
 }
 
-// Read a file from CatalystFS via MessagePort
+// Read a file from AtuaFS via MessagePort
 function readFile(path) {
   return new Promise((resolve, reject) => {
     if (!fsPort) {
@@ -87,7 +87,7 @@ function readFile(path) {
   });
 }
 
-// Check if a file exists in CatalystFS
+// Check if a file exists in AtuaFS
 function fileExists(path) {
   return new Promise((resolve) => {
     if (!fsPort) {
@@ -111,8 +111,8 @@ self.addEventListener('fetch', (event) => {
 
   // Route /api/* through Hono handler if loaded, otherwise pass through
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/api?')) {
-    if (apiHandlerLoaded && typeof self.catalystApiHandler === 'function') {
-      event.respondWith(self.catalystApiHandler(event.request));
+    if (apiHandlerLoaded && typeof self.atuaApiHandler === 'function') {
+      event.respondWith(self.atuaApiHandler(event.request));
     }
     return;
   }

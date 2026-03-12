@@ -69,7 +69,7 @@ const DEFAULT_ADDONS: AddonEntry[] = [
   },
   {
     packageName: 'fsevents',
-    description: 'macOS file watching — uses CatalystFS FileWatcher instead',
+    description: 'macOS file watching — uses AtuaFS FileWatcher instead',
     available: true,
     coverage: 'full',
   },

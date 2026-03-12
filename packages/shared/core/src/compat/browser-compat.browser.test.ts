@@ -1,7 +1,7 @@
 /**
  * Browser Compatibility Report — Feature detection suite
  *
- * Detects which browser APIs are available for Catalyst.
+ * Detects which browser APIs are available for Atua.
  * Reports native availability vs fallback status.
  */
 import { describe, it, expect, afterAll } from 'vitest';
@@ -124,7 +124,7 @@ describe('Browser Compatibility — Feature Detection', () => {
 });
 
 afterAll(() => {
-  console.log('\n=== Catalyst Browser Compatibility Report ===');
+  console.log('\n=== Atua Browser Compatibility Report ===');
   console.log('Feature'.padEnd(35) + '| Status'.padEnd(15) + '| Fallback');
   console.log('-'.repeat(65));
   for (const f of features) {

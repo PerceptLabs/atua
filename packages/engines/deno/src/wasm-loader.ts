@@ -109,11 +109,11 @@ export class DenoWasmLoader {
       );
     }
     const imports = { env: {
-      __catalyst_ops_dispatch: () => {},
-      __catalyst_alloc: () => 0,
-      __catalyst_dealloc: () => {},
-      __catalyst_console_log: () => {},
-      __catalyst_console_error: () => {},
+      __atua_ops_dispatch: () => {},
+      __atua_alloc: () => 0,
+      __atua_dealloc: () => {},
+      __atua_console_log: () => {},
+      __atua_console_error: () => {},
     }};
     const instance = await WebAssembly.instantiate(this.wasmModule, imports);
     return new DenoWasmInstanceImpl(instance);

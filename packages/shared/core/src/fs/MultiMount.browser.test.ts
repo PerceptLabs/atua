@@ -2,11 +2,11 @@
  * Multi-Mount + File Watching browser tests
  */
 import { describe, it, expect } from 'vitest';
-import { CatalystFS } from './CatalystFS.js';
+import { AtuaFS } from './AtuaFS.js';
 
-describe('CatalystFS Multi-Mount (Browser)', () => {
+describe('AtuaFS Multi-Mount (Browser)', () => {
   it('should support memory-only mount for /tmp', async () => {
-    const fs = await CatalystFS.create({
+    const fs = await AtuaFS.create({
       name: 'multi-browser-' + Date.now(),
       mounts: {
         '/': 'memory',
@@ -23,7 +23,7 @@ describe('CatalystFS Multi-Mount (Browser)', () => {
   });
 
   it('should support indexeddb + memory mixed mounts', async () => {
-    const fs = await CatalystFS.create({
+    const fs = await AtuaFS.create({
       name: 'mixed-mount-' + Date.now(),
       mounts: {
         '/': 'indexeddb',
@@ -40,16 +40,16 @@ describe('CatalystFS Multi-Mount (Browser)', () => {
   });
 });
 
-describe('CatalystFS File Watching (Browser)', () => {
+describe('AtuaFS File Watching (Browser)', () => {
   it('should detect FileSystemObserver availability', async () => {
-    const fs = await CatalystFS.create('watch-detect-' + Date.now());
+    const fs = await AtuaFS.create('watch-detect-' + Date.now());
     const hasNative = fs.hasNativeWatcher;
     console.log(`[FileWatcher] Native FileSystemObserver: ${hasNative}`);
     expect(typeof hasNative).toBe('boolean');
   });
 
   it('should fire callback on file change via polling watcher', async () => {
-    const fs = await CatalystFS.create({
+    const fs = await AtuaFS.create({
       name: 'watch-poll-' + Date.now(),
       mounts: { '/': 'memory' },
     });
@@ -79,7 +79,7 @@ describe('CatalystFS File Watching (Browser)', () => {
   });
 
   it('should debounce rapid writes', async () => {
-    const fs = await CatalystFS.create({
+    const fs = await AtuaFS.create({
       name: 'watch-debounce-' + Date.now(),
       mounts: { '/': 'memory' },
     });
@@ -111,7 +111,7 @@ describe('CatalystFS File Watching (Browser)', () => {
   });
 
   it('should clean up watchers on destroy', async () => {
-    const fs = await CatalystFS.create({
+    const fs = await AtuaFS.create({
       name: 'watch-destroy-' + Date.now(),
       mounts: { '/': 'memory' },
     });

@@ -2,12 +2,12 @@
  * ProcessPipeline Tests — stdio piping between processes
  */
 import { describe, it, expect } from 'vitest';
-import { CatalystProcess } from './CatalystProcess.js';
+import { AtuaProcess } from './AtuaProcess.js';
 import { pipeProcesses, pipeToFile, pipeFromFile, teeProcess, collectOutput, collectErrors } from './ProcessPipeline.js';
-import { CatalystFS } from '../fs/CatalystFS.js';
+import { AtuaFS } from '../fs/AtuaFS.js';
 
-function createMockProcess(pid: number): CatalystProcess {
-  const proc = new CatalystProcess(pid);
+function createMockProcess(pid: number): AtuaProcess {
+  const proc = new AtuaProcess(pid);
   proc._setState('running');
   return proc;
 }
@@ -47,8 +47,8 @@ describe('ProcessPipeline', () => {
   });
 
   describe('pipeToFile', () => {
-    it('writes stdout to a file in CatalystFS', async () => {
-      const fs = await CatalystFS.create('pipe-test');
+    it('writes stdout to a file in AtuaFS', async () => {
+      const fs = await AtuaFS.create('pipe-test');
       const source = createMockProcess(1);
 
       pipeToFile(source, fs, '/output.txt');
@@ -65,7 +65,7 @@ describe('ProcessPipeline', () => {
 
   describe('pipeFromFile', () => {
     it('reads file content and writes to process stdin', async () => {
-      const fs = await CatalystFS.create('pipe-from-test');
+      const fs = await AtuaFS.create('pipe-from-test');
       fs.writeFileSync('/input.txt', 'file content');
 
       const dest = createMockProcess(2);

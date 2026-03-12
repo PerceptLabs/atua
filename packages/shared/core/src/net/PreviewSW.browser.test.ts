@@ -15,7 +15,7 @@ describe('Preview Service Worker (Browser)', () => {
     const source = getPreviewSWSource();
     expect(source).toContain('addEventListener');
     expect(source).toContain('fetch');
-    expect(source).toContain('catalyst-fs-port');
+    expect(source).toContain('atua-fs-port');
     expect(source).toContain('MIME_MAP');
     expect(typeof source).toBe('string');
     expect(source.length).toBeGreaterThan(100);

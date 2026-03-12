@@ -16,4 +16,4 @@ export type {
   ModuleLoaderConfig,
 } from '../engine/interfaces.js';
 
-export type { EngineConfig, ConsoleLevel } from '../engine/CatalystEngine.js';
+export type { EngineConfig, ConsoleLevel } from '../engine/AtuaEngine.js';

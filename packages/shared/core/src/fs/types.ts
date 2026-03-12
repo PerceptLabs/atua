@@ -1,5 +1,5 @@
 /**
- * CatalystFS type definitions
+ * AtuaFS type definitions
  */
 
 /** Backend type for mount configuration */
@@ -12,7 +12,7 @@ export interface MountConfig {
 }
 
 /** Full filesystem configuration */
-export interface CatalystFSConfig {
+export interface AtuaFSConfig {
   /** Mount path -> backend config */
   mounts?: Record<string, MountConfig | BackendType>;
   /** Storage limits */

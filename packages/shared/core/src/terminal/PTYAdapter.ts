@@ -1,7 +1,7 @@
 /**
- * PTYAdapter — Bridges CatalystProc stdio with CatalystTerminal
+ * PTYAdapter — Bridges CatalystProc stdio with AtuaTerminal
  *
- * Connects a CatalystProcess to a CatalystTerminal:
+ * Connects an AtuaProcess to an AtuaTerminal:
  *   - Process stdout/stderr → terminal write
  *   - Terminal input → process stdin
  *   - Ctrl+C → SIGINT
@@ -9,8 +9,8 @@
  *   - Ctrl+Z → SIGTSTP (suspend)
  *   - Terminal resize → SIGWINCH
  */
-import type { CatalystProcess, Signal } from '../proc/CatalystProcess.js';
-import type { CatalystTerminal } from './CatalystTerminal.js';
+import type { AtuaProcess, Signal } from '../proc/AtuaProcess.js';
+import type { AtuaTerminal } from './AtuaTerminal.js';
 
 export interface PTYAdapterConfig {
   /** Whether to echo input characters back to terminal (default: true) */
@@ -26,8 +26,8 @@ export interface PTYAdapterConfig {
 }
 
 export class PTYAdapter {
-  private terminal: CatalystTerminal;
-  private process: CatalystProcess | null = null;
+  private terminal: AtuaTerminal;
+  private process: AtuaProcess | null = null;
   private config: PTYAdapterConfig;
   private _destroyed = false;
   private _stdinClosed = false;
@@ -35,7 +35,7 @@ export class PTYAdapter {
   private unbindProcess: (() => void) | null = null;
   private _inputLine = '';
 
-  constructor(terminal: CatalystTerminal, config: PTYAdapterConfig = {}) {
+  constructor(terminal: AtuaTerminal, config: PTYAdapterConfig = {}) {
     this.terminal = terminal;
     this.config = {
       echo: config.echo ?? true,
@@ -48,13 +48,13 @@ export class PTYAdapter {
 
   get destroyed(): boolean { return this._destroyed; }
   get stdinClosed(): boolean { return this._stdinClosed; }
-  get attachedProcess(): CatalystProcess | null { return this.process; }
+  get attachedProcess(): AtuaProcess | null { return this.process; }
 
   /**
    * Attach a process to the terminal.
    * Wires stdout/stderr → terminal and input → stdin.
    */
-  attach(process: CatalystProcess): void {
+  attach(process: AtuaProcess): void {
     if (this._destroyed) throw new Error('PTYAdapter has been destroyed');
     this.detach(); // detach any existing process
 
@@ -173,7 +173,7 @@ export class PTYAdapter {
       // Ctrl+Z (0x1a) → SIGTSTP
       if (code === 0x1a && this.config.handleCtrlZ) {
         this.terminal.write('^Z\r\n');
-        // SIGTSTP not in CatalystProcess signals, treat as SIGINT for now
+        // SIGTSTP not in AtuaProcess signals, treat as SIGINT for now
         this.process.kill('SIGINT');
         this._inputLine = '';
         return;

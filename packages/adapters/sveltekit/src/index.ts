@@ -1,26 +1,26 @@
 /**
- * @aspect/catalyst-sveltekit — SvelteKit adapter for Catalyst runtime.
+ * @aspect/atua-sveltekit — SvelteKit adapter for Atua runtime.
  *
  * Mirrors @sveltejs/adapter-cloudflare. Builds SvelteKit apps for the
- * browser-based CatalystWorkers runtime.
+ * browser-based AtuaWorkers runtime.
  *
  * Usage:
  *   // svelte.config.js
- *   import adapter from '@aspect/catalyst-sveltekit';
+ *   import adapter from '@aspect/atua-sveltekit';
  *   export default {
  *     kit: {
  *       adapter: adapter(),
  *     },
  *   };
  *
- * Bindings accessible via platform.catalyst.env in:
- *   - +server.ts: event.platform.catalyst.env
- *   - +page.server.ts: event.platform.catalyst.env
- *   - hooks.server.ts: event.platform.catalyst.env
+ * Bindings accessible via platform.atua.env in:
+ *   - +server.ts: event.platform.atua.env
+ *   - +page.server.ts: event.platform.atua.env
+ *   - hooks.server.ts: event.platform.atua.env
  */
 
 /** SvelteKit adapter configuration (matches @sveltejs/kit Adapter shape) */
-export interface CatalystSvelteKitAdapter {
+export interface AtuaSvelteKitAdapter {
   name: string;
   adapt: (builder: SvelteKitBuilder) => Promise<void>;
 }
@@ -43,28 +43,28 @@ export interface SvelteKitBuilder {
   writeFile: (file: string, data: string) => void;
 }
 
-/** Options for the Catalyst SvelteKit adapter */
-export interface CatalystSvelteKitOptions {
-  /** Output directory (default: '.catalyst-sveltekit') */
+/** Options for the Atua SvelteKit adapter */
+export interface AtuaSvelteKitOptions {
+  /** Output directory (default: '.atua-sveltekit') */
   out?: string;
 }
 
 /**
- * Create the Catalyst SvelteKit adapter.
+ * Create the Atua SvelteKit adapter.
  *
  * Configures SvelteKit to output a Workers-compatible fetch handler bundle.
  * The output is a single ES module with `export default { fetch }`.
  */
 export default function adapter(
-  options?: CatalystSvelteKitOptions,
-): CatalystSvelteKitAdapter {
-  const out = options?.out ?? '.catalyst-sveltekit';
+  options?: AtuaSvelteKitOptions,
+): AtuaSvelteKitAdapter {
+  const out = options?.out ?? '.atua-sveltekit';
 
   return {
-    name: '@aspect/catalyst-sveltekit',
+    name: '@aspect/atua-sveltekit',
 
     async adapt(builder: SvelteKitBuilder) {
-      builder.log.minor('Building for Catalyst runtime...');
+      builder.log.minor('Building for Atua runtime...');
 
       const serverDir = `${out}/server`;
       const clientDir = `${out}/client`;
@@ -107,7 +107,7 @@ export default {
 
     return server.respond(request, {
       platform: {
-        catalyst: {
+        atua: {
           env: env || {},
           ctx: ctx,
         },
@@ -123,8 +123,8 @@ export default {
       builder.writeFile(`${out}/index.js`, entryCode);
 
       builder.log.info(
-        `Catalyst adapter output written to ${out}/. ` +
-          'Load index.js into CatalystWorkers.',
+        `Atua adapter output written to ${out}/. ` +
+          'Load index.js into AtuaWorkers.',
       );
     },
   };

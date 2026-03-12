@@ -15,7 +15,7 @@
  * - 'dev' (default): resolve from esm.sh, auto-generate lockfile with SHA-256 integrity
  * - 'locked': require lockfile, unknown specifiers = hard error, integrity verification
  */
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 import { NpmResolver, type NpmResolverConfig } from './NpmResolver.js';
 import { PackageFetcher, type PackageFetcherConfig } from './PackageFetcher.js';
 import { PackageCache, type PackageCacheConfig } from './PackageCache.js';
@@ -32,7 +32,7 @@ export interface PackageInfo {
 export type PackageMode = 'dev' | 'locked';
 
 export interface PackageManagerConfig {
-  fs: CatalystFS;
+  fs: AtuaFS;
   resolver?: NpmResolverConfig;
   fetcher?: PackageFetcherConfig;
   cache?: PackageCacheConfig;
@@ -53,7 +53,7 @@ async function sha256(content: string): Promise<string> {
 }
 
 export class PackageManager {
-  private fs: CatalystFS;
+  private fs: AtuaFS;
   private resolver: NpmResolver;
   private fetcher: PackageFetcher;
   private cache: PackageCache;
@@ -66,7 +66,7 @@ export class PackageManager {
     this.resolver = new NpmResolver(config.resolver);
     this.fetcher = new PackageFetcher(config.fetcher);
     this.cache = new PackageCache(config.fs, config.cache);
-    this.lockfilePath = config.lockfilePath ?? '/catalyst-lock.json';
+    this.lockfilePath = config.lockfilePath ?? '/atua-lock.json';
     this.mode = config.mode ?? 'dev';
 
     if (this.mode === 'locked') {

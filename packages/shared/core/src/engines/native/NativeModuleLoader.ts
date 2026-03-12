@@ -1,20 +1,20 @@
 /**
  * NativeModuleLoader — IModuleLoader for browser-native execution context
  *
- * Provides require() backed by unenv polyfills + CatalystFS.
+ * Provides require() backed by unenv polyfills + AtuaFS.
  * Unlike NodeCompatLoader (which returns source strings for QuickJS eval),
  * this loader returns actual JavaScript module objects since we're running
  * in the browser's native JS engine.
  *
- * The module sources are the same (unenv bridge + catalyst host bindings),
+ * The module sources are the same (unenv bridge + atua host bindings),
  * but they're executed via new Function() rather than QuickJS evalCode().
  */
-import type { CatalystFS } from '../../fs/CatalystFS.js';
+import type { AtuaFS } from '../../fs/AtuaFS.js';
 import type { IModuleLoader, ModuleLoaderCapabilities, ModuleLoaderConfig } from '../../engine/interfaces.js';
 import { UNENV_MODULES, STUB_MODULES, getStubModuleSource } from '../../engine/host-bindings/unenv-bridge.js';
 
 export class NativeModuleLoader implements IModuleLoader {
-  private fs?: CatalystFS;
+  private fs?: AtuaFS;
   private env?: Record<string, string>;
   private initialized = false;
 
@@ -28,13 +28,13 @@ export class NativeModuleLoader implements IModuleLoader {
   };
 
   constructor(config: ModuleLoaderConfig = {}) {
-    this.fs = config.fs as CatalystFS | undefined;
+    this.fs = config.fs as AtuaFS | undefined;
     this.env = config.env;
     this.registerBuiltins();
   }
 
   private registerBuiltins(): void {
-    // Catalyst host bindings
+    // Atua host bindings
     this._builtinSources = {
       path: async () => (await import('../../engine/host-bindings/path.js')).getPathSource(),
       events: async () => (await import('../../engine/host-bindings/events.js')).getEventsSource(),
@@ -116,17 +116,17 @@ export class NativeModuleLoader implements IModuleLoader {
 
   private getFsModuleSource(): string {
     return `
-  module.exports.readFileSync = globalThis.__catalyst_fs_readFileSync;
-  module.exports.writeFileSync = globalThis.__catalyst_fs_writeFileSync;
-  module.exports.existsSync = globalThis.__catalyst_fs_existsSync;
-  module.exports.mkdirSync = globalThis.__catalyst_fs_mkdirSync;
-  module.exports.readdirSync = globalThis.__catalyst_fs_readdirSync;
-  module.exports.statSync = globalThis.__catalyst_fs_statSync;
-  module.exports.unlinkSync = globalThis.__catalyst_fs_unlinkSync;
-  module.exports.renameSync = globalThis.__catalyst_fs_renameSync;
-  module.exports.copyFileSync = globalThis.__catalyst_fs_copyFileSync;
-  module.exports.appendFileSync = globalThis.__catalyst_fs_appendFileSync;
-  module.exports.rmdirSync = globalThis.__catalyst_fs_rmdirSync;
+  module.exports.readFileSync = globalThis.__atua_fs_readFileSync;
+  module.exports.writeFileSync = globalThis.__atua_fs_writeFileSync;
+  module.exports.existsSync = globalThis.__atua_fs_existsSync;
+  module.exports.mkdirSync = globalThis.__atua_fs_mkdirSync;
+  module.exports.readdirSync = globalThis.__atua_fs_readdirSync;
+  module.exports.statSync = globalThis.__atua_fs_statSync;
+  module.exports.unlinkSync = globalThis.__atua_fs_unlinkSync;
+  module.exports.renameSync = globalThis.__atua_fs_renameSync;
+  module.exports.copyFileSync = globalThis.__atua_fs_copyFileSync;
+  module.exports.appendFileSync = globalThis.__atua_fs_appendFileSync;
+  module.exports.rmdirSync = globalThis.__atua_fs_rmdirSync;
 `;
   }
 

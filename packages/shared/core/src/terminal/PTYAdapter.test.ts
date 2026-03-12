@@ -3,19 +3,19 @@
  * Validates PTY bridge between terminal and process.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { CatalystTerminal } from './CatalystTerminal.js';
+import { AtuaTerminal } from './AtuaTerminal.js';
 import { PTYAdapter } from './PTYAdapter.js';
-import { CatalystProcess } from '../proc/CatalystProcess.js';
+import { AtuaProcess } from '../proc/AtuaProcess.js';
 
-let terminal: CatalystTerminal;
+let terminal: AtuaTerminal;
 let adapter: PTYAdapter;
-let process: CatalystProcess;
+let process: AtuaProcess;
 
 beforeEach(async () => {
-  terminal = new CatalystTerminal({ cols: 80, rows: 24 });
+  terminal = new AtuaTerminal({ cols: 80, rows: 24 });
   await terminal.mount();
   adapter = new PTYAdapter(terminal);
-  process = new CatalystProcess(1);
+  process = new AtuaProcess(1);
 });
 
 afterEach(() => {
@@ -47,7 +47,7 @@ describe('PTYAdapter — Attach/Detach', () => {
   });
 
   it('attach replaces previous process', () => {
-    const p2 = new CatalystProcess(2);
+    const p2 = new AtuaProcess(2);
     process._setState('running');
     p2._setState('running');
     adapter.attach(process);

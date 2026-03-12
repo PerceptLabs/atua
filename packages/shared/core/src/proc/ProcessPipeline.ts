@@ -4,12 +4,12 @@
  * Phase D: Enables `proc1.pipe(proc2)` and `proc.pipe(fileStream)`.
  * Supports:
  * - Process-to-process piping (stdout → stdin)
- * - Process-to-file piping (stdout → CatalystFS write)
- * - File-to-process piping (CatalystFS read → stdin)
+ * - Process-to-file piping (stdout → AtuaFS write)
+ * - File-to-process piping (AtuaFS read → stdin)
  * - Tee (stdout → multiple destinations)
  */
-import { CatalystProcess } from './CatalystProcess.js';
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import { AtuaProcess } from './AtuaProcess.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 
 export interface PipeOptions {
   /** Whether to close the destination when source ends (default: true) */
@@ -20,8 +20,8 @@ export interface PipeOptions {
  * Pipe stdout from source process to stdin of destination process.
  */
 export function pipeProcesses(
-  source: CatalystProcess,
-  destination: CatalystProcess,
+  source: AtuaProcess,
+  destination: AtuaProcess,
   options: PipeOptions = {},
 ): void {
   const shouldEnd = options.end ?? true;
@@ -37,17 +37,17 @@ export function pipeProcesses(
   if (shouldEnd) {
     source.on('exit', () => {
       // Signal end of input to destination
-      // CatalystProcess doesn't have a closeStdin, but the data will stop
+      // AtuaProcess doesn't have a closeStdin, but the data will stop
     });
   }
 }
 
 /**
- * Pipe stdout from a process to a file in CatalystFS.
+ * Pipe stdout from a process to a file in AtuaFS.
  */
 export function pipeToFile(
-  source: CatalystProcess,
-  fs: CatalystFS,
+  source: AtuaProcess,
+  fs: AtuaFS,
   path: string,
   options: { append?: boolean } = {},
 ): void {
@@ -70,12 +70,12 @@ export function pipeToFile(
 }
 
 /**
- * Pipe file contents from CatalystFS to a process stdin.
+ * Pipe file contents from AtuaFS to a process stdin.
  */
 export function pipeFromFile(
-  fs: CatalystFS,
+  fs: AtuaFS,
   path: string,
-  destination: CatalystProcess,
+  destination: AtuaProcess,
 ): void {
   try {
     const content = fs.readFileSync(path, 'utf-8') as string;
@@ -89,8 +89,8 @@ export function pipeFromFile(
  * Tee — pipe stdout to multiple destinations.
  */
 export function teeProcess(
-  source: CatalystProcess,
-  destinations: CatalystProcess[],
+  source: AtuaProcess,
+  destinations: AtuaProcess[],
 ): void {
   source.on('stdout', (data: string) => {
     for (const dest of destinations) {
@@ -106,7 +106,7 @@ export function teeProcess(
 /**
  * Collect all stdout from a process into a string.
  */
-export function collectOutput(proc: CatalystProcess): Promise<string> {
+export function collectOutput(proc: AtuaProcess): Promise<string> {
   return new Promise((resolve) => {
     const chunks: string[] = [];
     proc.on('stdout', (data: string) => chunks.push(data));
@@ -117,7 +117,7 @@ export function collectOutput(proc: CatalystProcess): Promise<string> {
 /**
  * Collect all stderr from a process into a string.
  */
-export function collectErrors(proc: CatalystProcess): Promise<string> {
+export function collectErrors(proc: AtuaProcess): Promise<string> {
   return new Promise((resolve) => {
     const chunks: string[] = [];
     proc.on('stderr', (data: string) => chunks.push(data));

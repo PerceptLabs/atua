@@ -6,7 +6,7 @@
  * the async fetch operation.
  *
  * Architecture:
- * 1. __catalyst_fetch(url, initJson) host function creates a deferred promise
+ * 1. __atua_fetch(url, initJson) host function creates a deferred promise
  * 2. Starts real fetch via FetchProxy asynchronously
  * 3. When fetch completes, resolves/rejects the deferred promise
  * 4. Calls runtime.executePendingJobs() to process promise callbacks
@@ -32,7 +32,7 @@ export function injectFetchBinding(
 
   // Host function: starts a fetch and returns a QuickJS Promise
   const fetchFn = ctx.newFunction(
-    '__catalyst_fetch',
+    '__atua_fetch',
     (urlHandle: any, initJsonHandle: any) => {
       const url = ctx.getString(urlHandle);
       let init: RequestInit = {};
@@ -80,7 +80,7 @@ export function injectFetchBinding(
     },
   );
 
-  ctx.setProp(ctx.global, '__catalyst_fetch', fetchFn);
+  ctx.setProp(ctx.global, '__atua_fetch', fetchFn);
   fetchFn.dispose();
 
   // Install fetch() as a pure JS wrapper inside QuickJS
@@ -89,7 +89,7 @@ globalThis.fetch = function fetch(url, init) {
   var urlStr = typeof url === 'string' ? url : String(url);
   var initJson = JSON.stringify(init || {});
 
-  return globalThis.__catalyst_fetch(urlStr, initJson).then(function(responseJson) {
+  return globalThis.__atua_fetch(urlStr, initJson).then(function(responseJson) {
     var resp = JSON.parse(responseJson);
     return {
       ok: resp.ok,
@@ -124,14 +124,14 @@ globalThis.fetch = function fetch(url, init) {
   }
 
   // Store pending list on context for external access
-  (ctx as any).__catalyst_pending_fetches = pendingDeferreds;
+  (ctx as any).__atua_pending_fetches = pendingDeferreds;
 }
 
 /**
  * Check if there are unsettled fetch operations.
  */
 export function hasPendingFetches(ctx: any): boolean {
-  const pending: Array<{ settled: boolean }> = (ctx as any).__catalyst_pending_fetches;
+  const pending: Array<{ settled: boolean }> = (ctx as any).__atua_pending_fetches;
   if (!pending) return false;
   return pending.some((p) => !p.settled);
 }
@@ -140,7 +140,7 @@ export function hasPendingFetches(ctx: any): boolean {
  * Clean up settled fetch entries.
  */
 export function cleanupSettledFetches(ctx: any): void {
-  const pending: Array<{ settled: boolean }> = (ctx as any).__catalyst_pending_fetches;
+  const pending: Array<{ settled: boolean }> = (ctx as any).__atua_pending_fetches;
   if (!pending) return;
-  (ctx as any).__catalyst_pending_fetches = pending.filter((p) => !p.settled);
+  (ctx as any).__atua_pending_fetches = pending.filter((p) => !p.settled);
 }

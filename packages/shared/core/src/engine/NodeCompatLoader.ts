@@ -2,20 +2,20 @@
  * NodeCompatLoader — IModuleLoader implementation for Workers mode
  *
  * Provides Node.js-compatible module resolution using:
- * - Custom catalyst host bindings (path, events, buffer, process, etc.)
+ * - Custom atua host bindings (path, events, buffer, process, etc.)
  * - unenv-backed modules (crypto, os, stream, http, etc.)
  * - Stub modules for unavailable APIs (net, tls, dns, etc.)
- * - CatalystFS for filesystem-based module resolution
+ * - AtuaFS for filesystem-based module resolution
  *
- * This is the default loader for Catalyst (Workers mode).
+ * This is the default loader for Atua (Workers mode).
  * Reaction (Full mode) uses DenoNativeLoader instead.
  */
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 import type { IModuleLoader, ModuleLoaderCapabilities, ModuleLoaderConfig } from './interfaces.js';
 import { UNENV_MODULES, STUB_MODULES, getStubModuleSource } from './host-bindings/unenv-bridge.js';
 
 export class NodeCompatLoader implements IModuleLoader {
-  private fs?: CatalystFS;
+  private fs?: AtuaFS;
   private env?: Record<string, string>;
   private initialized = false;
 
@@ -32,7 +32,7 @@ export class NodeCompatLoader implements IModuleLoader {
   };
 
   constructor(config: ModuleLoaderConfig = {}) {
-    this.fs = config.fs as CatalystFS | undefined;
+    this.fs = config.fs as AtuaFS | undefined;
     this.env = config.env;
     this.registerBuiltins();
   }
@@ -42,7 +42,7 @@ export class NodeCompatLoader implements IModuleLoader {
    * Sources are loaded asynchronously in initialize().
    */
   private registerBuiltins(): void {
-    // 1. Custom catalyst host bindings
+    // 1. Custom atua host bindings
     this._builtinSources = {
       path: async () => (await import('./host-bindings/path.js')).getPathSource(),
       events: async () => (await import('./host-bindings/events.js')).getEventsSource(),
@@ -99,7 +99,7 @@ export class NodeCompatLoader implements IModuleLoader {
   }
 
   /**
-   * Resolve a module specifier to source code from CatalystFS.
+   * Resolve a module specifier to source code from AtuaFS.
    * Synchronous — called from the require() host function.
    * Returns null if the module is not found.
    */
@@ -139,20 +139,20 @@ export class NodeCompatLoader implements IModuleLoader {
     return null;
   }
 
-  /** Get the fs module source that delegates to CatalystFS host functions */
+  /** Get the fs module source that delegates to AtuaFS host functions */
   private getFsModuleSource(): string {
     return `
-  module.exports.readFileSync = globalThis.__catalyst_fs_readFileSync;
-  module.exports.writeFileSync = globalThis.__catalyst_fs_writeFileSync;
-  module.exports.existsSync = globalThis.__catalyst_fs_existsSync;
-  module.exports.mkdirSync = globalThis.__catalyst_fs_mkdirSync;
-  module.exports.readdirSync = globalThis.__catalyst_fs_readdirSync;
-  module.exports.statSync = globalThis.__catalyst_fs_statSync;
-  module.exports.unlinkSync = globalThis.__catalyst_fs_unlinkSync;
-  module.exports.renameSync = globalThis.__catalyst_fs_renameSync;
-  module.exports.copyFileSync = globalThis.__catalyst_fs_copyFileSync;
-  module.exports.appendFileSync = globalThis.__catalyst_fs_appendFileSync;
-  module.exports.rmdirSync = globalThis.__catalyst_fs_rmdirSync;
+  module.exports.readFileSync = globalThis.__atua_fs_readFileSync;
+  module.exports.writeFileSync = globalThis.__atua_fs_writeFileSync;
+  module.exports.existsSync = globalThis.__atua_fs_existsSync;
+  module.exports.mkdirSync = globalThis.__atua_fs_mkdirSync;
+  module.exports.readdirSync = globalThis.__atua_fs_readdirSync;
+  module.exports.statSync = globalThis.__atua_fs_statSync;
+  module.exports.unlinkSync = globalThis.__atua_fs_unlinkSync;
+  module.exports.renameSync = globalThis.__atua_fs_renameSync;
+  module.exports.copyFileSync = globalThis.__atua_fs_copyFileSync;
+  module.exports.appendFileSync = globalThis.__atua_fs_appendFileSync;
+  module.exports.rmdirSync = globalThis.__atua_fs_rmdirSync;
 `;
   }
 

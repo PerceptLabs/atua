@@ -4,16 +4,16 @@
  * Phase 13b: Tests real Hono API routing, middleware, and error handling in Chromium.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CatalystFS } from '../fs/CatalystFS.js';
+import { AtuaFS } from '../fs/AtuaFS.js';
 import { BuildPipeline, PassthroughTranspiler } from './BuildPipeline.js';
 import { HonoIntegration } from './HonoIntegration.js';
 
 describe('HonoIntegration — API Detection (Browser)', () => {
-  let fs: CatalystFS;
+  let fs: AtuaFS;
   let pipeline: BuildPipeline;
 
   beforeEach(async () => {
-    fs = await CatalystFS.create('hono-detect-' + Date.now());
+    fs = await AtuaFS.create('hono-detect-' + Date.now());
     pipeline = new BuildPipeline(fs, new PassthroughTranspiler());
   });
 
@@ -44,11 +44,11 @@ describe('HonoIntegration — API Detection (Browser)', () => {
 });
 
 describe('HonoIntegration — Build (Browser)', () => {
-  let fs: CatalystFS;
+  let fs: AtuaFS;
   let pipeline: BuildPipeline;
 
   beforeEach(async () => {
-    fs = await CatalystFS.create('hono-build-' + Date.now());
+    fs = await AtuaFS.create('hono-build-' + Date.now());
     pipeline = new BuildPipeline(fs, new PassthroughTranspiler());
   });
 
@@ -58,7 +58,7 @@ describe('HonoIntegration — Build (Browser)', () => {
       '/src/api/index.ts',
       `var { Hono } = require('hono');
 var app = new Hono();
-app.get('/api/hello', function(c) { return c.json({ message: 'Hello from Catalyst!' }); });`,
+app.get('/api/hello', function(c) { return c.json({ message: 'Hello from Atua!' }); });`,
     );
 
     const hono = new HonoIntegration(fs, pipeline);
@@ -80,11 +80,11 @@ app.get('/api/hello', function(c) { return c.json({ message: 'Hello from Catalys
 });
 
 describe('HonoIntegration — API Handler Execution (Browser)', () => {
-  let fs: CatalystFS;
+  let fs: AtuaFS;
   let pipeline: BuildPipeline;
 
   beforeEach(async () => {
-    fs = await CatalystFS.create('hono-exec-' + Date.now());
+    fs = await AtuaFS.create('hono-exec-' + Date.now());
     pipeline = new BuildPipeline(fs, new PassthroughTranspiler());
   });
 
@@ -104,7 +104,7 @@ app.get('/api/hello', function(c) { return c.json({ message: 'Hello World' }); }
     const scope: any = {};
     new Function('self', code)(scope);
 
-    const response = await scope.catalystApiHandler(
+    const response = await scope.atuaApiHandler(
       new Request('http://localhost/api/hello'),
     );
     expect(response.status).toBe(200);
@@ -129,7 +129,7 @@ app.post('/api/items', function(c) { return c.json({ created: true }, 201); });`
     const scope: any = {};
     new Function('self', code)(scope);
 
-    const response = await scope.catalystApiHandler(
+    const response = await scope.atuaApiHandler(
       new Request('http://localhost/api/items', { method: 'POST' }),
     );
     expect(response.status).toBe(201);
@@ -156,7 +156,7 @@ app.get('/api/users/:id', function(c) {
     const scope: any = {};
     new Function('self', code)(scope);
 
-    const response = await scope.catalystApiHandler(
+    const response = await scope.atuaApiHandler(
       new Request('http://localhost/api/users/123'),
     );
     const body = await response.json();
@@ -182,11 +182,11 @@ app.get('/api/search', function(c) {
     const scope: any = {};
     new Function('self', code)(scope);
 
-    const response = await scope.catalystApiHandler(
-      new Request('http://localhost/api/search?q=catalyst'),
+    const response = await scope.atuaApiHandler(
+      new Request('http://localhost/api/search?q=atua'),
     );
     const body = await response.json();
-    expect(body.query).toBe('catalyst');
+    expect(body.query).toBe('atua');
     fs.destroy();
   });
 
@@ -206,7 +206,7 @@ app.get('/api/hello', function(c) { return c.json({ ok: true }); });`,
     const scope: any = {};
     new Function('self', code)(scope);
 
-    const response = await scope.catalystApiHandler(
+    const response = await scope.atuaApiHandler(
       new Request('http://localhost/api/missing'),
     );
     expect(response.status).toBe(404);
@@ -231,7 +231,7 @@ app.get('/api/data', function(c) { return c.json({ data: 1 }); });`,
     const scope: any = {};
     new Function('self', code)(scope);
 
-    const response = await scope.catalystApiHandler(
+    const response = await scope.atuaApiHandler(
       new Request('http://localhost/api/data'),
     );
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
@@ -254,7 +254,7 @@ app.get('/api/health', function(c) { return c.text('ok'); });`,
     const scope: any = {};
     new Function('self', code)(scope);
 
-    const response = await scope.catalystApiHandler(
+    const response = await scope.atuaApiHandler(
       new Request('http://localhost/api/health'),
     );
     expect(response.status).toBe(200);
@@ -281,17 +281,17 @@ app.get('/api/health', function(c) { return c.text('ok'); });`,
     const scope: any = {};
     new Function('self', code)(scope);
 
-    const r1 = await scope.catalystApiHandler(
+    const r1 = await scope.atuaApiHandler(
       new Request('http://localhost/api/users'),
     );
     expect((await r1.json()).users).toEqual([]);
 
-    const r2 = await scope.catalystApiHandler(
+    const r2 = await scope.atuaApiHandler(
       new Request('http://localhost/api/users', { method: 'POST' }),
     );
     expect(r2.status).toBe(201);
 
-    const r3 = await scope.catalystApiHandler(
+    const r3 = await scope.atuaApiHandler(
       new Request('http://localhost/api/health'),
     );
     expect(await r3.text()).toBe('ok');
@@ -318,7 +318,7 @@ app.get('/api/chain', function(c) { return c.json({ chained: true }); });`,
     const scope: any = {};
     new Function('self', code)(scope);
 
-    const response = await scope.catalystApiHandler(
+    const response = await scope.atuaApiHandler(
       new Request('http://localhost/api/chain'),
     );
     expect(response.status).toBe(200);
@@ -347,7 +347,7 @@ app.get('/api/fail', function(c) { throw new Error('boom'); });`,
     const scope: any = {};
     new Function('self', code)(scope);
 
-    const response = await scope.catalystApiHandler(
+    const response = await scope.atuaApiHandler(
       new Request('http://localhost/api/fail'),
     );
     expect(response.status).toBe(500);
@@ -372,7 +372,7 @@ app.get('/hello', function(c) { return c.json({ basePath: true }); });`,
     const scope: any = {};
     new Function('self', code)(scope);
 
-    const response = await scope.catalystApiHandler(
+    const response = await scope.atuaApiHandler(
       new Request('http://localhost/api/hello'),
     );
     expect(response.status).toBe(200);

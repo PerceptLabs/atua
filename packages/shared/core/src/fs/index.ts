@@ -1,7 +1,7 @@
-export { CatalystFS } from './CatalystFS.js';
+export { AtuaFS } from './AtuaFS.js';
 export { hasNativeObserver } from './FileWatcher.js';
 export type {
-  CatalystFSConfig,
+  AtuaFSConfig,
   MountConfig,
   BackendType,
   WatchCallback,

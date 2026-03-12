@@ -86,8 +86,8 @@ ${getNodeGlobalsCode({ env: config.env, cwd: config.cwd, pid: config.pid })}
     }
 
     // Try filesystem module resolution (if available)
-    if (typeof self.__catalyst_resolve_module === 'function') {
-      var source = self.__catalyst_resolve_module(moduleName);
+    if (typeof self.__atua_resolve_module === 'function') {
+      var source = self.__atua_resolve_module(moduleName);
       if (source) {
         var mod = { exports: {} };
         __modules[moduleName] = mod.exports;
@@ -134,8 +134,8 @@ ${getNodeGlobalsCode({ env: config.env, cwd: config.cwd, pid: config.pid })}
         }
       }
       var text = args.join(' ');
-      if (typeof self.__catalyst_console === 'function') {
-        self.__catalyst_console(level, text);
+      if (typeof self.__atua_console === 'function') {
+        self.__atua_console(level, text);
       }
     };
   }
@@ -169,8 +169,8 @@ ${getNodeGlobalsCode({ env: config.env, cwd: config.cwd, pid: config.pid })}
 })();
 
 // Signal ready
-if (typeof self.__catalyst_ready === 'function') {
-  self.__catalyst_ready();
+if (typeof self.__atua_ready === 'function') {
+  self.__atua_ready();
 }
 `;
 }

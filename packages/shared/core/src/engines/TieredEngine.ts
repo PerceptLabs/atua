@@ -1,7 +1,7 @@
 /**
  * TieredEngine — Validates via Tier 0 (QuickJS), executes via Tier 1 (Native)
  *
- * This is the primary engine for Catalyst: it combines security validation
+ * This is the primary engine for Atua: it combines security validation
  * with native-speed execution.
  *
  * Tier 0 (QuickJS sandbox): validates code before native execution

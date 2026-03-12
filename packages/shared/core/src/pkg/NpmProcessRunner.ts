@@ -14,7 +14,7 @@
  * 4. Network access is restricted to registry and known CDNs
  */
 
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 import { ProcessManager, type ExecResult } from '../proc/ProcessManager.js';
 import { CodeValidator, type ValidationResult } from '../validation/CodeValidator.js';
 
@@ -62,12 +62,12 @@ const DEFAULT_ALLOWED_HOSTS = [
 export class NpmProcessRunner {
   private config: Required<NpmProcessRunnerConfig>;
   private processManager: ProcessManager;
-  private fs: CatalystFS;
+  private fs: AtuaFS;
   private validator: CodeValidator;
 
   constructor(
     processManager: ProcessManager,
-    fs: CatalystFS,
+    fs: AtuaFS,
     config: NpmProcessRunnerConfig = {},
   ) {
     this.processManager = processManager;
@@ -205,7 +205,7 @@ export class NpmProcessRunner {
   }
 
   /**
-   * Read scripts from a package.json in CatalystFS.
+   * Read scripts from a package.json in AtuaFS.
    */
   readPackageScripts(packageName: string): Partial<Record<ScriptPhase, string>> {
     const pkgJsonPath = `/node_modules/${packageName}/package.json`;

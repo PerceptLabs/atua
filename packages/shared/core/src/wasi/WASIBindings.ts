@@ -1,12 +1,12 @@
 /**
  * WASIBindings — WASI Preview 1 system call implementations
  *
- * Maps WASI fd_read/fd_write/path_open etc. to CatalystFS operations.
+ * Maps WASI fd_read/fd_write/path_open etc. to AtuaFS operations.
  * Implements the wasi_snapshot_preview1 import namespace.
  *
  * Reference: https://github.com/WebAssembly/WASI/blob/main/legacy/preview1/docs.md
  */
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 
 /** WASI error codes */
 export const WASI_ERRNO = {
@@ -51,10 +51,10 @@ const WASI_CLOCK = {
 } as const;
 
 export interface WASIConfig {
-  fs?: CatalystFS;
+  fs?: AtuaFS;
   args?: string[];
   env?: Record<string, string>;
-  preopens?: Record<string, string>; // wasi path -> catalyst path
+  preopens?: Record<string, string>; // wasi path -> atua path
   stdout?: (data: string) => void;
   stderr?: (data: string) => void;
   stdin?: () => string | null;
@@ -79,7 +79,7 @@ export class WASIBindings {
   private stdoutBuffer = '';
   private stderrBuffer = '';
   private exitCode: number | null = null;
-  private readonly fs?: CatalystFS;
+  private readonly fs?: AtuaFS;
   private readonly args: string[];
   private readonly envVars: string[];
   private readonly onStdout: (data: string) => void;
@@ -118,10 +118,10 @@ export class WASIBindings {
 
     // Set up preopened directories
     const preopens = config.preopens ?? { '/': '/' };
-    for (const [wasiPath, catalystPath] of Object.entries(preopens)) {
+    for (const [wasiPath, atuaPath] of Object.entries(preopens)) {
       const fd = this.nextFd++;
       this.fds.set(fd, {
-        path: catalystPath,
+        path: atuaPath,
         type: 'directory',
         rights:
           WASI_RIGHTS.FD_READ |

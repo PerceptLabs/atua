@@ -1,5 +1,5 @@
 {
-  "name": "@aspect/catalyst-engine-deno",
+  "name": "@aspect/atua-engine-deno",
   "version": "0.0.1",
   "description": "Deno-in-WASM engine for Catalyst — V8 jitless runtime compiled to WebAssembly",
   "type": "module",

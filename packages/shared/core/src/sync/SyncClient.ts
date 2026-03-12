@@ -5,7 +5,7 @@
  * Buffers changes in OperationJournal during disconnection.
  * On reconnect, replays journal entries to sync state.
  */
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 import {
   PROTOCOL_VERSION,
   type SyncMessage,
@@ -20,8 +20,8 @@ import {
 } from './ConflictResolver.js';
 
 export interface SyncClientConfig {
-  /** CatalystFS instance */
-  fs: CatalystFS;
+  /** AtuaFS instance */
+  fs: AtuaFS;
   /** Auto-sync on file changes (default: true) */
   autoSync?: boolean;
   /** Debounce interval for auto-sync in ms (default: 500) */
@@ -43,7 +43,7 @@ type SyncEventType =
 export class SyncClient {
   private ws: WebSocket | null = null;
   private _state: ConnectionState = 'disconnected';
-  private readonly fs: CatalystFS;
+  private readonly fs: AtuaFS;
   private readonly journal: OperationJournal;
   private readonly conflictResolver: ConflictResolver;
   private readonly autoSync: boolean;

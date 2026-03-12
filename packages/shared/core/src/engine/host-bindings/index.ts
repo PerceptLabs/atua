@@ -46,7 +46,7 @@ import { getUtilSource } from './util.js';
 
 /**
  * Convenience map: module name -> source getter.
- * Contains ONLY custom (catalyst) host bindings.
+ * Contains ONLY custom (atua) host bindings.
  * For unenv-backed modules, see UNENV_MODULES in unenv-bridge.ts.
  */
 export function getBuiltinModules(): Record<string, () => string> {

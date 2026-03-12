@@ -1,5 +1,5 @@
-export { CatalystEngine } from './CatalystEngine.js';
-export type { EngineConfig, ConsoleLevel } from './CatalystEngine.js';
+export { AtuaEngine } from './AtuaEngine.js';
+export type { EngineConfig, ConsoleLevel } from './AtuaEngine.js';
 export { NodeCompatLoader } from './NodeCompatLoader.js';
 export type {
   IEngine,

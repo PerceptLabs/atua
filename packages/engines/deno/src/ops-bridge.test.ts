@@ -4,13 +4,13 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { OpsBridge } from './ops-bridge.js';
-import { CatalystFS } from '../../../shared/core/src/fs/CatalystFS.js';
+import { AtuaFS } from '../../../shared/core/src/fs/AtuaFS.js';
 
-let fs: CatalystFS;
+let fs: AtuaFS;
 let bridge: OpsBridge;
 
 beforeEach(async () => {
-  fs = await CatalystFS.create(`ops-bridge-${Date.now()}`);
+  fs = await AtuaFS.create(`ops-bridge-${Date.now()}`);
   bridge = new OpsBridge({ fs, env: { NODE_ENV: 'test', HOME: '/home/user' }, cwd: '/project' });
 });
 

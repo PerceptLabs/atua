@@ -1,9 +1,9 @@
 /**
- * Lockfile — Read/write catalyst-lock.json
+ * Lockfile — Read/write atua-lock.json
  *
  * Provides deterministic installs: if lockfile exists, use pinned versions.
  */
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 
 export interface LockfileEntry {
   version: string;
@@ -17,7 +17,7 @@ export interface LockfileData {
   packages: Record<string, LockfileEntry>;
 }
 
-const LOCKFILE_PATH = '/catalyst-lock.json';
+const LOCKFILE_PATH = '/atua-lock.json';
 
 export class Lockfile {
   private data: LockfileData;
@@ -26,8 +26,8 @@ export class Lockfile {
     this.data = data ?? { lockfileVersion: 1, packages: {} };
   }
 
-  /** Read lockfile from CatalystFS */
-  static read(fs: CatalystFS, path = LOCKFILE_PATH): Lockfile {
+  /** Read lockfile from AtuaFS */
+  static read(fs: AtuaFS, path = LOCKFILE_PATH): Lockfile {
     try {
       const content = fs.readFileSync(path, 'utf-8') as string;
       const data = JSON.parse(content) as LockfileData;
@@ -37,8 +37,8 @@ export class Lockfile {
     }
   }
 
-  /** Write lockfile to CatalystFS */
-  write(fs: CatalystFS, path = LOCKFILE_PATH): void {
+  /** Write lockfile to AtuaFS */
+  write(fs: AtuaFS, path = LOCKFILE_PATH): void {
     const json = JSON.stringify(this.data, null, 2);
     fs.writeFileSync(path, json);
   }

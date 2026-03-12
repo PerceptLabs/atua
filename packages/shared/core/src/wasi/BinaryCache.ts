@@ -1,11 +1,11 @@
 /**
  * BinaryCache — Cache for compiled WASI binaries
  *
- * Stores WASI .wasm binaries in CatalystFS with metadata.
+ * Stores WASI .wasm binaries in AtuaFS with metadata.
  * Content-addressable via URL + SHA-256 hash.
  * LRU eviction when cache size exceeds limit.
  */
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 
 export interface BinaryCacheEntry {
   url: string;
@@ -13,12 +13,12 @@ export interface BinaryCacheEntry {
   size: number;
   storedAt: number;
   lastAccessed: number;
-  path: string; // CatalystFS path where binary is stored
+  path: string; // AtuaFS path where binary is stored
 }
 
 export interface BinaryCacheConfig {
-  /** CatalystFS instance */
-  fs: CatalystFS;
+  /** AtuaFS instance */
+  fs: AtuaFS;
   /** Cache directory path (default: /.wasi-cache) */
   cacheDir?: string;
   /** Max cache size in bytes (default: 100MB) */
@@ -28,7 +28,7 @@ export interface BinaryCacheConfig {
 const METADATA_FILE = '.wasi-cache-meta.json';
 
 export class BinaryCache {
-  private readonly fs: CatalystFS;
+  private readonly fs: AtuaFS;
   private readonly cacheDir: string;
   private readonly maxSize: number;
   private entries: Map<string, BinaryCacheEntry> = new Map();
@@ -246,7 +246,7 @@ export class BinaryCache {
     }
   }
 
-  /** Convert Uint8Array to a string safe for CatalystFS storage */
+  /** Convert Uint8Array to a string safe for AtuaFS storage */
   private uint8ToStorageString(data: Uint8Array): string {
     // Use base64 encoding for binary-safe storage
     const chunks: string[] = [];

@@ -9,13 +9,13 @@
  *   MUST equal 2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
  */
 import { describe, it, expect } from 'vitest';
-import { CatalystFS } from '../../fs/CatalystFS.js';
-import { CatalystEngine } from '../CatalystEngine.js';
+import { AtuaFS } from '../../fs/AtuaFS.js';
+import { AtuaEngine } from '../AtuaEngine.js';
 
 describe('unenv-bridge — Crypto (real hashes)', () => {
   it('SHA-256 litmus test: hash of "hello"', async () => {
-    const fs = await CatalystFS.create('unenv-sha256');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-sha256');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(
       `require('crypto').createHash('sha256').update('hello').digest('hex')`,
     );
@@ -25,8 +25,8 @@ describe('unenv-bridge — Crypto (real hashes)', () => {
   });
 
   it('SHA-256 of empty string', async () => {
-    const fs = await CatalystFS.create('unenv-sha256-empty');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-sha256-empty');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(
       `require('crypto').createHash('sha256').update('').digest('hex')`,
     );
@@ -36,8 +36,8 @@ describe('unenv-bridge — Crypto (real hashes)', () => {
   });
 
   it('SHA-256 of "test"', async () => {
-    const fs = await CatalystFS.create('unenv-sha256-test');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-sha256-test');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(
       `require('crypto').createHash('sha256').update('test').digest('hex')`,
     );
@@ -47,8 +47,8 @@ describe('unenv-bridge — Crypto (real hashes)', () => {
   });
 
   it('SHA-1 produces correct 40-char hex', async () => {
-    const fs = await CatalystFS.create('unenv-sha1');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-sha1');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(
       `require('crypto').createHash('sha1').update('hello').digest('hex')`,
     );
@@ -58,8 +58,8 @@ describe('unenv-bridge — Crypto (real hashes)', () => {
   });
 
   it('MD5 produces correct 32-char hex', async () => {
-    const fs = await CatalystFS.create('unenv-md5');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-md5');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(
       `require('crypto').createHash('md5').update('hello').digest('hex')`,
     );
@@ -69,8 +69,8 @@ describe('unenv-bridge — Crypto (real hashes)', () => {
   });
 
   it('HMAC-SHA256 produces correct output', async () => {
-    const fs = await CatalystFS.create('unenv-hmac');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-hmac');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(
       `require('crypto').createHmac('sha256', 'key').update('data').digest('hex')`,
     );
@@ -81,8 +81,8 @@ describe('unenv-bridge — Crypto (real hashes)', () => {
   });
 
   it('randomBytes returns correct length', async () => {
-    const fs = await CatalystFS.create('unenv-random');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-random');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`require('crypto').randomBytes(16).length`);
     expect(result).toBe(16);
     engine.dispose();
@@ -90,8 +90,8 @@ describe('unenv-bridge — Crypto (real hashes)', () => {
   });
 
   it('randomUUID returns UUID v4 format', async () => {
-    const fs = await CatalystFS.create('unenv-uuid');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-uuid');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`require('crypto').randomUUID()`);
     expect(result).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
     engine.dispose();
@@ -99,8 +99,8 @@ describe('unenv-bridge — Crypto (real hashes)', () => {
   });
 
   it('getHashes returns supported algorithms', async () => {
-    const fs = await CatalystFS.create('unenv-hashes');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-hashes');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`JSON.stringify(require('crypto').getHashes())`);
     const hashes = JSON.parse(result);
     expect(hashes).toContain('sha256');
@@ -111,8 +111,8 @@ describe('unenv-bridge — Crypto (real hashes)', () => {
   });
 
   it('chained update calls work', async () => {
-    const fs = await CatalystFS.create('unenv-chain');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-chain');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(
       `require('crypto').createHash('sha256').update('hel').update('lo').digest('hex')`,
     );
@@ -122,8 +122,8 @@ describe('unenv-bridge — Crypto (real hashes)', () => {
   });
 
   it('base64 encoding works', async () => {
-    const fs = await CatalystFS.create('unenv-b64');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-b64');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(
       `require('crypto').createHash('sha256').update('hello').digest('base64')`,
     );
@@ -136,8 +136,8 @@ describe('unenv-bridge — Crypto (real hashes)', () => {
 
 describe('unenv-bridge — OS module', () => {
   it('os.platform() returns "browser"', async () => {
-    const fs = await CatalystFS.create('unenv-os-plat');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-os-plat');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`require('os').platform()`);
     expect(result).toBe('browser');
     engine.dispose();
@@ -145,8 +145,8 @@ describe('unenv-bridge — OS module', () => {
   });
 
   it('os.cpus() returns array with at least one entry', async () => {
-    const fs = await CatalystFS.create('unenv-os-cpus');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-os-cpus');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`JSON.stringify(require('os').cpus())`);
     const cpus = JSON.parse(result);
     expect(Array.isArray(cpus)).toBe(true);
@@ -156,8 +156,8 @@ describe('unenv-bridge — OS module', () => {
   });
 
   it('os.tmpdir() returns /tmp', async () => {
-    const fs = await CatalystFS.create('unenv-os-tmp');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-os-tmp');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`require('os').tmpdir()`);
     expect(result).toBe('/tmp');
     engine.dispose();
@@ -165,8 +165,8 @@ describe('unenv-bridge — OS module', () => {
   });
 
   it('os.EOL returns newline', async () => {
-    const fs = await CatalystFS.create('unenv-os-eol');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-os-eol');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`require('os').EOL`);
     expect(result).toBe('\n');
     engine.dispose();
@@ -174,8 +174,8 @@ describe('unenv-bridge — OS module', () => {
   });
 
   it('os.arch() returns wasm32', async () => {
-    const fs = await CatalystFS.create('unenv-os-arch');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-os-arch');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`require('os').arch()`);
     expect(result).toBe('wasm32');
     engine.dispose();
@@ -185,8 +185,8 @@ describe('unenv-bridge — OS module', () => {
 
 describe('unenv-bridge — Stream module', () => {
   it('Readable is a constructor', async () => {
-    const fs = await CatalystFS.create('unenv-stream-readable');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-stream-readable');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`typeof require('stream').Readable`);
     expect(result).toBe('function');
     engine.dispose();
@@ -194,8 +194,8 @@ describe('unenv-bridge — Stream module', () => {
   });
 
   it('Writable is a constructor', async () => {
-    const fs = await CatalystFS.create('unenv-stream-writable');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-stream-writable');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`typeof require('stream').Writable`);
     expect(result).toBe('function');
     engine.dispose();
@@ -203,8 +203,8 @@ describe('unenv-bridge — Stream module', () => {
   });
 
   it('Transform is a constructor', async () => {
-    const fs = await CatalystFS.create('unenv-stream-transform');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-stream-transform');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`typeof require('stream').Transform`);
     expect(result).toBe('function');
     engine.dispose();
@@ -212,8 +212,8 @@ describe('unenv-bridge — Stream module', () => {
   });
 
   it('PassThrough is a constructor', async () => {
-    const fs = await CatalystFS.create('unenv-stream-pt');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-stream-pt');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`typeof require('stream').PassThrough`);
     expect(result).toBe('function');
     engine.dispose();
@@ -221,8 +221,8 @@ describe('unenv-bridge — Stream module', () => {
   });
 
   it('Readable push/data event works', async () => {
-    const fs = await CatalystFS.create('unenv-stream-push');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-stream-push');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`
       var s = require('stream');
       var r = new s.Readable();
@@ -238,8 +238,8 @@ describe('unenv-bridge — Stream module', () => {
   });
 
   it('pipe works between Readable and Writable', async () => {
-    const fs = await CatalystFS.create('unenv-stream-pipe');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-stream-pipe');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`
       var s = require('stream');
       var collected = '';
@@ -259,8 +259,8 @@ describe('unenv-bridge — Stream module', () => {
 
 describe('unenv-bridge — Querystring module', () => {
   it('parse works', async () => {
-    const fs = await CatalystFS.create('unenv-qs-parse');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-qs-parse');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(
       `JSON.stringify(require('querystring').parse('a=1&b=2'))`,
     );
@@ -272,8 +272,8 @@ describe('unenv-bridge — Querystring module', () => {
   });
 
   it('stringify works', async () => {
-    const fs = await CatalystFS.create('unenv-qs-str');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-qs-str');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(
       `require('querystring').stringify({ a: '1', b: '2' })`,
     );
@@ -284,8 +284,8 @@ describe('unenv-bridge — Querystring module', () => {
   });
 
   it('round-trip works', async () => {
-    const fs = await CatalystFS.create('unenv-qs-rt');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-qs-rt');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`
       var qs = require('querystring');
       var str = qs.stringify({ x: '10', y: '20' });
@@ -300,8 +300,8 @@ describe('unenv-bridge — Querystring module', () => {
 
 describe('unenv-bridge — HTTP module (stubs)', () => {
   it('http.createServer throws helpful error', async () => {
-    const fs = await CatalystFS.create('unenv-http');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-http');
+    const engine = await AtuaEngine.create({ fs });
     try {
       await engine.eval(`require('http').createServer()`);
       expect.fail('should have thrown');
@@ -313,8 +313,8 @@ describe('unenv-bridge — HTTP module (stubs)', () => {
   });
 
   it('http.STATUS_CODES exists', async () => {
-    const fs = await CatalystFS.create('unenv-http-codes');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-http-codes');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`require('http').STATUS_CODES[200]`);
     expect(result).toBe('OK');
     engine.dispose();
@@ -324,8 +324,8 @@ describe('unenv-bridge — HTTP module (stubs)', () => {
 
 describe('unenv-bridge — StringDecoder module', () => {
   it('StringDecoder write works', async () => {
-    const fs = await CatalystFS.create('unenv-sd');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-sd');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`
       var SD = require('string_decoder').StringDecoder;
       var d = new SD('utf-8');
@@ -339,8 +339,8 @@ describe('unenv-bridge — StringDecoder module', () => {
 
 describe('unenv-bridge — Stub modules', () => {
   it('require("net") throws helpful error on use', async () => {
-    const fs = await CatalystFS.create('unenv-stub-net');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-stub-net');
+    const engine = await AtuaEngine.create({ fs });
     try {
       await engine.eval(`require('net').connect()`);
       expect.fail('should have thrown');
@@ -352,8 +352,8 @@ describe('unenv-bridge — Stub modules', () => {
   });
 
   it('require("child_process") throws helpful error', async () => {
-    const fs = await CatalystFS.create('unenv-stub-cp');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-stub-cp');
+    const engine = await AtuaEngine.create({ fs });
     try {
       await engine.eval(`require('child_process').exec('ls')`);
       expect.fail('should have thrown');
@@ -365,8 +365,8 @@ describe('unenv-bridge — Stub modules', () => {
   });
 
   it('require("tls") loads without error but methods throw', async () => {
-    const fs = await CatalystFS.create('unenv-stub-tls');
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('unenv-stub-tls');
+    const engine = await AtuaEngine.create({ fs });
     const result = await engine.eval(`typeof require('tls')`);
     expect(result).toBe('object');
     engine.dispose();

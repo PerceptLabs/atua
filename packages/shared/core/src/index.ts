@@ -1,10 +1,10 @@
-// @aspect/catalyst-core
+// @aspect/atua-core
 // Browser-native runtime engine — core package
 
 export const VERSION = '0.0.1';
 
-export { CatalystFS } from './fs/index.js';
-export { CatalystEngine } from './engine/index.js';
+export { AtuaFS } from './fs/index.js';
+export { AtuaEngine } from './engine/index.js';
 export type { EngineConfig, ConsoleLevel } from './engine/index.js';
 export { NodeCompatLoader } from './engine/index.js';
 export type {
@@ -28,7 +28,7 @@ export { TieredEngine } from './engines/index.js';
 export type { TieredEngineConfig } from './engines/index.js';
 export { FetchProxy } from './net/index.js';
 export type { FetchProxyConfig, SerializedRequest, SerializedResponse } from './net/index.js';
-export { ProcessManager, CatalystProcess } from './proc/index.js';
+export { ProcessManager, AtuaProcess } from './proc/index.js';
 export type { ProcessOptions, ExecResult, Signal, ProcessState } from './proc/index.js';
 export { PackageManager, PackageCache, PackageFetcher, NpmResolver, PackageJson, Lockfile } from './pkg/index.js';
 export { Semver } from './pkg/index.js';
@@ -38,8 +38,8 @@ export type { PackageJsonData, LockfileData, LockfileEntry } from './pkg/index.j
 export { BuildPipeline, ContentHashCache, HMRManager, PassthroughTranspiler, EsbuildTranspiler } from './dev/index.js';
 export { HonoIntegration } from './dev/index.js';
 export type { BuildConfig, BuildResult, BuildError, Transpiler, HMREvent, HonoIntegrationConfig, HonoBuildResult } from './dev/index.js';
-export { CatalystWASI } from './wasi/index.js';
-export type { WASIExecConfig, WASIExecResult, CatalystWASIConfig } from './wasi/index.js';
+export { AtuaWASI } from './wasi/index.js';
+export type { WASIExecConfig, WASIExecResult, AtuaWASIConfig } from './wasi/index.js';
 export { WASIBindings, WASI_ERRNO } from './wasi/index.js';
 export type { WASIConfig } from './wasi/index.js';
 export { BinaryCache } from './wasi/index.js';
@@ -64,18 +64,18 @@ export type {
 } from './validation/index.js';
 
 // Net — HTTP, DNS, TCP, TLS
-export { CatalystHTTPServer, createHTTPServer, getHTTPModuleSource } from './net/index.js';
+export { AtuaHTTPServer, createHTTPServer, getHTTPModuleSource } from './net/index.js';
 export type { RequestHandler, SerializedHTTPRequest, SerializedHTTPResponse } from './net/index.js';
-export { CatalystDNS, getDNSModuleSource } from './net/index.js';
+export { AtuaDNS, getDNSModuleSource } from './net/index.js';
 export type { DNSConfig } from './net/index.js';
-export { CatalystTCPSocket, CatalystTCPServer, createConnection, getNetModuleSource } from './net/index.js';
+export { AtuaTCPSocket, AtuaTCPServer, createConnection, getNetModuleSource } from './net/index.js';
 export type { TCPConnectionOptions } from './net/index.js';
 export { tlsConnect, createTLSServer, getTLSModuleSource } from './net/index.js';
 export type { TLSConnectionOptions } from './net/index.js';
 
 // Process — pipelines, cluster
 export { pipeProcesses, pipeToFile, pipeFromFile, teeProcess, collectOutput, collectErrors } from './proc/index.js';
-export { CatalystCluster, getClusterModuleSource } from './proc/index.js';
+export { AtuaCluster, getClusterModuleSource } from './proc/index.js';
 export type { ClusterWorker, ClusterSettings } from './proc/index.js';
 
 // Package — registry client, addon registry
@@ -90,6 +90,6 @@ export type { NpmProcessRunnerConfig, ScriptRunResult, ScriptPhase } from './pkg
 export { WorkersComplianceGate } from './compat/index.js';
 export type { ComplianceResult, ComplianceError, ComplianceWarning } from './compat/index.js';
 
-export { Catalyst, createRuntime } from './catalyst.js';
-export type { CatalystConfig, EngineType } from './catalyst.js';
+export { Atua, createRuntime } from './atua.js';
+export type { AtuaConfig, EngineType } from './atua.js';
 

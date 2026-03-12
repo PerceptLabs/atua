@@ -1,4 +1,4 @@
-// CatalystSync — Bidirectional filesystem sync
+// AtuaSync — Bidirectional filesystem sync
 export { SyncClient } from './SyncClient.js';
 export type { SyncClientConfig } from './SyncClient.js';
 export { SyncServer } from './SyncServer.js';

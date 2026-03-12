@@ -1,7 +1,7 @@
 /**
  * Engine Compatibility — Phase 22a
  *
- * Validates that Reaction (Deno) and Catalyst (QuickJS) engines
+ * Validates that Reaction (Deno) and Atua (QuickJS) engines
  * handle Workers compliance correctly and provide feature parity.
  */
 import { describe, it, expect, afterAll } from 'vitest';
@@ -134,7 +134,7 @@ describe('Engine Compat — WASM Loader Lifecycle', () => {
 describe('Engine Compat — Mode Comparison', () => {
   it('documents mode capabilities', () => {
     const modes = {
-      catalyst: {
+      atua: {
         engine: 'QuickJS',
         jspiRequired: false,
         wasmSize: '< 1MB',
@@ -155,11 +155,11 @@ describe('Engine Compat — Mode Comparison', () => {
     };
 
     // Verify both modes are documented
-    expect(modes.catalyst.engine).toBe('QuickJS');
+    expect(modes.atua.engine).toBe('QuickJS');
     expect(modes.reaction.engine).toContain('Deno');
 
     // QuickJS: smaller, faster boot, less compat
-    expect(modes.catalyst.jspiRequired).toBe(false);
+    expect(modes.atua.jspiRequired).toBe(false);
     expect(modes.reaction.jspiRequired).toBe(true);
 
     console.log('\n=== Mode Comparison ===');

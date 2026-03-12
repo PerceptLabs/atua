@@ -1,5 +1,5 @@
 {
-  "name": "@aspect/catalyst-astro",
+  "name": "@aspect/atua-astro",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",

@@ -2,12 +2,12 @@
  * PackageManager — Browser tests
  *
  * Tests full integration: install packages with mock fetcher,
- * verify /node_modules/ written to CatalystFS, require in QuickJS,
+ * verify /node_modules/ written to AtuaFS, require in QuickJS,
  * lockfile persistence, cache hits, LRU eviction, installAll.
  */
 import { describe, it, expect } from 'vitest';
-import { CatalystFS } from '../fs/CatalystFS.js';
-import { CatalystEngine } from '../engine/CatalystEngine.js';
+import { AtuaFS } from '../fs/AtuaFS.js';
+import { AtuaEngine } from '../engine/AtuaEngine.js';
 import { PackageManager } from './PackageManager.js';
 import { PackageCache } from './PackageCache.js';
 import { Lockfile } from './Lockfile.js';
@@ -123,7 +123,7 @@ function createMockFetches() {
 }
 
 /** Create PackageManager with mock fetches */
-function createMockPM(fs: CatalystFS) {
+function createMockPM(fs: AtuaFS) {
   const mocks = createMockFetches();
   const pm = new PackageManager({
     fs,
@@ -135,7 +135,7 @@ function createMockPM(fs: CatalystFS) {
 
 describe('PackageManager — Install & Resolve', () => {
   it('should install a package to /node_modules/', async () => {
-    const fs = await CatalystFS.create('pm-install-1');
+    const fs = await AtuaFS.create('pm-install-1');
     const { pm } = createMockPM(fs);
 
     const info = await pm.install('lodash');
@@ -153,7 +153,7 @@ describe('PackageManager — Install & Resolve', () => {
   });
 
   it('should resolve installed package path', async () => {
-    const fs = await CatalystFS.create('pm-resolve-1');
+    const fs = await AtuaFS.create('pm-resolve-1');
     const { pm } = createMockPM(fs);
 
     expect(pm.resolve('lodash')).toBeNull();
@@ -162,12 +162,12 @@ describe('PackageManager — Install & Resolve', () => {
   });
 
   it('should install and require in QuickJS', async () => {
-    const fs = await CatalystFS.create('pm-require-1');
+    const fs = await AtuaFS.create('pm-require-1');
     const { pm } = createMockPM(fs);
 
     await pm.install('lodash');
 
-    const engine = await CatalystEngine.create({ fs });
+    const engine = await AtuaEngine.create({ fs });
     try {
       const result = await engine.eval(`
         var _ = require('lodash');
@@ -180,12 +180,12 @@ describe('PackageManager — Install & Resolve', () => {
   });
 
   it('should install and use _.add in QuickJS', async () => {
-    const fs = await CatalystFS.create('pm-require-2');
+    const fs = await AtuaFS.create('pm-require-2');
     const { pm } = createMockPM(fs);
 
     await pm.install('lodash');
 
-    const engine = await CatalystEngine.create({ fs });
+    const engine = await AtuaEngine.create({ fs });
     try {
       const result = await engine.eval(`
         var _ = require('lodash');
@@ -200,19 +200,19 @@ describe('PackageManager — Install & Resolve', () => {
 
 describe('PackageManager — Lockfile', () => {
   it('should write lockfile after install', async () => {
-    const fs = await CatalystFS.create('pm-lock-1');
+    const fs = await AtuaFS.create('pm-lock-1');
     const { pm } = createMockPM(fs);
 
     await pm.install('lodash');
 
-    expect(fs.existsSync('/catalyst-lock.json')).toBe(true);
-    const lockContent = fs.readFileSync('/catalyst-lock.json', 'utf-8') as string;
+    expect(fs.existsSync('/atua-lock.json')).toBe(true);
+    const lockContent = fs.readFileSync('/atua-lock.json', 'utf-8') as string;
     const lockData = JSON.parse(lockContent);
     expect(lockData.packages.lodash.version).toBe('4.17.21');
   });
 
   it('should use lockfile version on second install', async () => {
-    const fs = await CatalystFS.create('pm-lock-2');
+    const fs = await AtuaFS.create('pm-lock-2');
     const { pm, getCdnFetchCount } = createMockPM(fs);
 
     await pm.install('lodash');
@@ -227,7 +227,7 @@ describe('PackageManager — Lockfile', () => {
 
 describe('PackageManager — Cache', () => {
   it('should return cached=true on second install', async () => {
-    const fs = await CatalystFS.create('pm-cache-1');
+    const fs = await AtuaFS.create('pm-cache-1');
     const { pm } = createMockPM(fs);
 
     const info1 = await pm.install('lodash');
@@ -238,7 +238,7 @@ describe('PackageManager — Cache', () => {
   });
 
   it('should list installed packages', async () => {
-    const fs = await CatalystFS.create('pm-list-1');
+    const fs = await AtuaFS.create('pm-list-1');
     const { pm } = createMockPM(fs);
 
     await pm.install('lodash');
@@ -250,7 +250,7 @@ describe('PackageManager — Cache', () => {
   });
 
   it('should remove a package', async () => {
-    const fs = await CatalystFS.create('pm-remove-1');
+    const fs = await AtuaFS.create('pm-remove-1');
     const { pm } = createMockPM(fs);
 
     await pm.install('lodash');
@@ -262,7 +262,7 @@ describe('PackageManager — Cache', () => {
   });
 
   it('should clear all packages', async () => {
-    const fs = await CatalystFS.create('pm-clear-1');
+    const fs = await AtuaFS.create('pm-clear-1');
     const { pm } = createMockPM(fs);
 
     await pm.install('lodash');
@@ -276,7 +276,7 @@ describe('PackageManager — Cache', () => {
 
 describe('PackageManager — installAll', () => {
   it('should install all dependencies from package.json', async () => {
-    const fs = await CatalystFS.create('pm-all-1');
+    const fs = await AtuaFS.create('pm-all-1');
     const { pm } = createMockPM(fs);
 
     // Write package.json
@@ -302,7 +302,7 @@ describe('PackageManager — installAll', () => {
   });
 
   it('should require all installed packages in QuickJS', async () => {
-    const fs = await CatalystFS.create('pm-all-2');
+    const fs = await AtuaFS.create('pm-all-2');
     const { pm } = createMockPM(fs);
 
     fs.writeFileSync(
@@ -316,7 +316,7 @@ describe('PackageManager — installAll', () => {
 
     await pm.installAll();
 
-    const engine = await CatalystEngine.create({ fs });
+    const engine = await AtuaEngine.create({ fs });
     try {
       const result = await engine.eval(`
         var _ = require('lodash');
@@ -336,7 +336,7 @@ describe('PackageManager — installAll', () => {
 
 describe('PackageCache — LRU Eviction', () => {
   it('should evict least-recently-used when cache exceeds max size', async () => {
-    const fs = await CatalystFS.create('pm-lru-1');
+    const fs = await AtuaFS.create('pm-lru-1');
 
     // Create cache with very small max size (200 bytes)
     const cache = new PackageCache(fs, { maxSize: 200 });
@@ -372,7 +372,7 @@ describe('PackageCache — LRU Eviction', () => {
   });
 
   it('should track total cache size', async () => {
-    const fs = await CatalystFS.create('pm-lru-2');
+    const fs = await AtuaFS.create('pm-lru-2');
     const cache = new PackageCache(fs);
 
     cache.store('small', '1.0.0', 'abc', { source: 'test' });
@@ -384,12 +384,12 @@ describe('PackageCache — LRU Eviction', () => {
 
 describe('PackageManager — Multiple packages in QuickJS', () => {
   it('should install mathlib and use it in QuickJS', async () => {
-    const fs = await CatalystFS.create('pm-math-1');
+    const fs = await AtuaFS.create('pm-math-1');
     const { pm } = createMockPM(fs);
 
     await pm.install('mathlib');
 
-    const engine = await CatalystEngine.create({ fs });
+    const engine = await AtuaEngine.create({ fs });
     try {
       const result = await engine.eval(`
         var math = require('mathlib');

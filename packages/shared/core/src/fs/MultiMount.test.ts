@@ -2,11 +2,11 @@
  * Multi-mount configuration logic tests (Node)
  */
 import { describe, it, expect } from 'vitest';
-import { CatalystFS } from './CatalystFS.js';
+import { AtuaFS } from './AtuaFS.js';
 
-describe('CatalystFS Multi-Mount (Node)', () => {
+describe('AtuaFS Multi-Mount (Node)', () => {
   it('should create with multi-mount config using InMemory (Node always uses InMemory)', async () => {
-    const fs = await CatalystFS.create({
+    const fs = await AtuaFS.create({
       name: 'multi-test',
       mounts: {
         '/': 'memory',
@@ -25,7 +25,7 @@ describe('CatalystFS Multi-Mount (Node)', () => {
   });
 
   it('should support mount config objects', async () => {
-    const fs = await CatalystFS.create({
+    const fs = await AtuaFS.create({
       name: 'mount-obj-test',
       mounts: {
         '/': { backend: 'memory' },
@@ -39,7 +39,7 @@ describe('CatalystFS Multi-Mount (Node)', () => {
   });
 
   it('should have watch method and destroy', async () => {
-    const fs = await CatalystFS.create('watch-test');
+    const fs = await AtuaFS.create('watch-test');
     expect(typeof fs.watch).toBe('function');
     expect(typeof fs.destroy).toBe('function');
     fs.destroy();

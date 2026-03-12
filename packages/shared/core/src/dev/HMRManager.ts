@@ -1,18 +1,18 @@
 /**
  * HMRManager — Hot Module Replacement via file watching
  *
- * Watches CatalystFS for source file changes, triggers rebuild
+ * Watches AtuaFS for source file changes, triggers rebuild
  * via BuildPipeline, emits update events. HMR signals "reload"
  * (no React Fast Refresh).
  */
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 import { BuildPipeline, type BuildConfig, type BuildResult } from './BuildPipeline.js';
 
 export type HMREvent = 'update' | 'error' | 'build-start' | 'build-complete';
 type HMRHandler = (data: any) => void;
 
 export class HMRManager {
-  private fs: CatalystFS;
+  private fs: AtuaFS;
   private pipeline: BuildPipeline;
   private buildConfig: BuildConfig;
   private handlers = new Map<string, HMRHandler[]>();
@@ -20,7 +20,7 @@ export class HMRManager {
   private lastHash = '';
   private building = false;
 
-  constructor(fs: CatalystFS, pipeline: BuildPipeline, buildConfig: BuildConfig = {}) {
+  constructor(fs: AtuaFS, pipeline: BuildPipeline, buildConfig: BuildConfig = {}) {
     this.fs = fs;
     this.pipeline = pipeline;
     this.buildConfig = buildConfig;

@@ -1,6 +1,6 @@
-// CatalystWASI — WASI binary execution layer
-export { CatalystWASI } from './CatalystWASI.js';
-export type { WASIExecConfig, WASIExecResult, CatalystWASIConfig } from './CatalystWASI.js';
+// AtuaWASI — WASI binary execution layer
+export { AtuaWASI } from './AtuaWASI.js';
+export type { WASIExecConfig, WASIExecResult, AtuaWASIConfig } from './AtuaWASI.js';
 export { WASIBindings, WASI_ERRNO } from './WASIBindings.js';
 export type { WASIConfig } from './WASIBindings.js';
 export { BinaryCache } from './BinaryCache.js';

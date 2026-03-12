@@ -9,7 +9,7 @@
  * IModuleLoader: How imports resolve — builtins, filesystem, npm packages.
  *
  * The distribution package wires engine + loader:
- *   Catalyst: QuickJSEngine + NodeCompatLoader
+ *   Atua: QuickJSEngine + NodeCompatLoader
  *   Reaction: DenoEngine + DenoNativeLoader (future)
  */
 

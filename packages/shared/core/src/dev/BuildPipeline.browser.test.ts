@@ -1,12 +1,12 @@
 /**
  * BuildPipeline — Browser tests
  *
- * Tests full build pipeline: write source to CatalystFS, build, verify
+ * Tests full build pipeline: write source to AtuaFS, build, verify
  * output in /dist/, content-hash cache hits, HMR file watching, and
  * build error reporting.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CatalystFS } from '../fs/CatalystFS.js';
+import { AtuaFS } from '../fs/AtuaFS.js';
 import {
   BuildPipeline,
   EsbuildTranspiler,
@@ -33,14 +33,14 @@ try {
 
 describe('BuildPipeline — Single File Build', () => {
   it('should build a JS file and write to /dist/', async () => {
-    const fs = await CatalystFS.create('bp-build-1');
+    const fs = await AtuaFS.create('bp-build-1');
     const pipeline = new BuildPipeline(fs, transpiler);
 
     // Write source
     fs.mkdirSync('/src', { recursive: true });
     fs.writeFileSync(
       '/src/index.js',
-      'var greeting = "Hello from Catalyst!";\nconsole.log(greeting);',
+      'var greeting = "Hello from Atua!";\nconsole.log(greeting);',
     );
 
     const result = await pipeline.build({
@@ -50,17 +50,17 @@ describe('BuildPipeline — Single File Build', () => {
 
     expect(result.errors).toHaveLength(0);
     expect(result.cached).toBe(false);
-    expect(result.code).toContain('Hello from Catalyst');
+    expect(result.code).toContain('Hello from Atua');
     expect(fs.existsSync('/dist/app.js')).toBe(true);
 
     const output = fs.readFileSync('/dist/app.js', 'utf-8') as string;
-    expect(output).toContain('Hello from Catalyst');
+    expect(output).toContain('Hello from Atua');
   });
 
   it('should build TSX source with esbuild', async () => {
     if (!esbuildAvailable) return; // Skip if esbuild not available
 
-    const fs = await CatalystFS.create('bp-tsx-1');
+    const fs = await AtuaFS.create('bp-tsx-1');
     const pipeline = new BuildPipeline(fs, transpiler);
 
     fs.mkdirSync('/src', { recursive: true });
@@ -82,7 +82,7 @@ describe('BuildPipeline — Single File Build', () => {
 
 describe('BuildPipeline — Content Hash Cache', () => {
   it('should return cached=true for identical source', async () => {
-    const fs = await CatalystFS.create('bp-cache-1');
+    const fs = await AtuaFS.create('bp-cache-1');
     const pipeline = new BuildPipeline(fs, transpiler);
 
     fs.mkdirSync('/src', { recursive: true });
@@ -98,7 +98,7 @@ describe('BuildPipeline — Content Hash Cache', () => {
   });
 
   it('should rebuild when source changes', async () => {
-    const fs = await CatalystFS.create('bp-cache-2');
+    const fs = await AtuaFS.create('bp-cache-2');
     const pipeline = new BuildPipeline(fs, transpiler);
 
     fs.mkdirSync('/src', { recursive: true });
@@ -117,7 +117,7 @@ describe('BuildPipeline — Content Hash Cache', () => {
 
 describe('BuildPipeline — Multi-Module Bundle', () => {
   it('should bundle multiple files with imports', async () => {
-    const fs = await CatalystFS.create('bp-multi-1');
+    const fs = await AtuaFS.create('bp-multi-1');
     const pipeline = new BuildPipeline(fs, transpiler);
 
     fs.mkdirSync('/src', { recursive: true });
@@ -139,7 +139,7 @@ describe('BuildPipeline — Multi-Module Bundle', () => {
 
 describe('BuildPipeline — Error Handling', () => {
   it('should report error for missing entry point', async () => {
-    const fs = await CatalystFS.create('bp-err-1');
+    const fs = await AtuaFS.create('bp-err-1');
     const pipeline = new BuildPipeline(fs, transpiler);
 
     const result = await pipeline.build({ entryPoint: '/nonexistent.js' });
@@ -150,7 +150,7 @@ describe('BuildPipeline — Error Handling', () => {
   it('should report build errors for invalid TSX', async () => {
     if (!esbuildAvailable) return;
 
-    const fs = await CatalystFS.create('bp-err-2');
+    const fs = await AtuaFS.create('bp-err-2');
     const pipeline = new BuildPipeline(fs, transpiler);
 
     fs.mkdirSync('/src', { recursive: true });
@@ -163,7 +163,7 @@ describe('BuildPipeline — Error Handling', () => {
 
 describe('BuildPipeline — Backend Pass', () => {
   it('should build a backend/worker file', async () => {
-    const fs = await CatalystFS.create('bp-backend-1');
+    const fs = await AtuaFS.create('bp-backend-1');
     const pipeline = new BuildPipeline(fs, transpiler);
 
     fs.mkdirSync('/src/api', { recursive: true });
@@ -186,7 +186,7 @@ describe('BuildPipeline — Backend Pass', () => {
 
 describe('HMRManager — File Watch + Rebuild', () => {
   it('should emit update event after file change triggers rebuild', async () => {
-    const fs = await CatalystFS.create('hmr-1');
+    const fs = await AtuaFS.create('hmr-1');
     const pipeline = new BuildPipeline(fs, transpiler);
     const hmr = new HMRManager(fs, pipeline, { entryPoint: '/src/index.js' });
 
@@ -211,7 +211,7 @@ describe('HMRManager — File Watch + Rebuild', () => {
   });
 
   it('should not emit update for cached (unchanged) builds', async () => {
-    const fs = await CatalystFS.create('hmr-2');
+    const fs = await AtuaFS.create('hmr-2');
     const pipeline = new BuildPipeline(fs, transpiler);
     const hmr = new HMRManager(fs, pipeline, { entryPoint: '/src/index.js' });
 
@@ -234,7 +234,7 @@ describe('HMRManager — File Watch + Rebuild', () => {
   it('should emit error event for build failures', async () => {
     if (!esbuildAvailable) return;
 
-    const fs = await CatalystFS.create('hmr-3');
+    const fs = await AtuaFS.create('hmr-3');
     const pipeline = new BuildPipeline(fs, transpiler);
     const hmr = new HMRManager(fs, pipeline, { entryPoint: '/src/index.tsx' });
 
@@ -251,7 +251,7 @@ describe('HMRManager — File Watch + Rebuild', () => {
   });
 
   it('should track watching state', async () => {
-    const fs = await CatalystFS.create('hmr-4');
+    const fs = await AtuaFS.create('hmr-4');
     const pipeline = new BuildPipeline(fs, transpiler);
     const hmr = new HMRManager(fs, pipeline);
 
@@ -266,7 +266,7 @@ describe('HMRManager — File Watch + Rebuild', () => {
   });
 
   it('should emit build-start and build-complete events', async () => {
-    const fs = await CatalystFS.create('hmr-5');
+    const fs = await AtuaFS.create('hmr-5');
     const pipeline = new BuildPipeline(fs, transpiler);
     const hmr = new HMRManager(fs, pipeline, { entryPoint: '/src/index.js' });
 

@@ -1,5 +1,5 @@
 {
-  "name": "@aspect/reaction",
+  "name": "@aspect/atua-deno",
   "version": "0.0.1",
   "description": "Reaction — Full-mode browser runtime with Deno-in-WASM, V8 jitless, 100% Node compat",
   "type": "module",

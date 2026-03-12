@@ -1,22 +1,22 @@
 /**
  * SvelteKit Adapter — Browser tests
  *
- * Tests that a pre-built SvelteKit bundle loads in CatalystWorkers,
- * renders pages, serves API routes, and provides bindings via platform.catalyst.env.
+ * Tests that a pre-built SvelteKit bundle loads in AtuaWorkers,
+ * renders pages, serves API routes, and provides bindings via platform.atua.env.
  * Uses a hand-crafted fixture simulating SvelteKit's output.
  */
 import { describe, it, expect, afterEach } from 'vitest';
-import { CatalystWorkers } from '../../../workers/catalyst-workers/src/runtime.js';
-import type { WorkerModule } from '../../../workers/catalyst-workers/src/runtime.js';
+import { AtuaWorkers } from '../../../workers/atua-workers/src/runtime.js';
+import type { WorkerModule } from '../../../workers/atua-workers/src/runtime.js';
 
 // Import the hand-crafted SvelteKit fixture
-import * as sveltekitBundle from '../../../workers/catalyst-workers/test/fixtures/sveltekit-basic/.output/server/index.mjs';
+import * as sveltekitBundle from '../../../workers/atua-workers/test/fixtures/sveltekit-basic/.output/server/index.mjs';
 
 function req(path: string): Request {
   return new Request(`http://localhost${path}`);
 }
 
-let runtime: CatalystWorkers | null = null;
+let runtime: AtuaWorkers | null = null;
 
 afterEach(async () => {
   if (runtime) {
@@ -32,8 +32,8 @@ describe('SvelteKit Adapter — Bundle Loading', () => {
     expect(typeof mod.default.fetch).toBe('function');
   });
 
-  it('SvelteKit bundle loads in CatalystWorkers', async () => {
-    runtime = await CatalystWorkers.create({
+  it('SvelteKit bundle loads in AtuaWorkers', async () => {
+    runtime = await AtuaWorkers.create({
       workers: {
         sveltekit: {
           module: sveltekitBundle as unknown as WorkerModule,
@@ -47,7 +47,7 @@ describe('SvelteKit Adapter — Bundle Loading', () => {
 
 describe('SvelteKit Adapter — Page Rendering', () => {
   it('SvelteKit page renders correctly', async () => {
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: {
         sveltekit: {
           module: sveltekitBundle as unknown as WorkerModule,
@@ -63,11 +63,11 @@ describe('SvelteKit Adapter — Page Rendering', () => {
 
     const html = await response!.text();
     expect(html).toContain('<h1>Welcome to SvelteKit</h1>');
-    expect(html).toContain('Running on Catalyst');
+    expect(html).toContain('Running on Atua');
   });
 
   it('SvelteKit API route returns JSON', async () => {
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: {
         sveltekit: {
           module: sveltekitBundle as unknown as WorkerModule,
@@ -87,8 +87,8 @@ describe('SvelteKit Adapter — Page Rendering', () => {
 });
 
 describe('SvelteKit Adapter — Bindings', () => {
-  it('platform.catalyst.env provides bindings', async () => {
-    runtime = await CatalystWorkers.create({
+  it('platform.atua.env provides bindings', async () => {
+    runtime = await AtuaWorkers.create({
       workers: {
         sveltekit: {
           module: sveltekitBundle as unknown as WorkerModule,
@@ -110,17 +110,17 @@ describe('SvelteKit Adapter — Bindings', () => {
     expect(data.envKeys).toContain('SESSION_SECRET');
   });
 
-  it('both frameworks coexist in separate CatalystWorkers instances', async () => {
-    const astroRuntime = await CatalystWorkers.create({
+  it('both frameworks coexist in separate AtuaWorkers instances', async () => {
+    const astroRuntime = await AtuaWorkers.create({
       workers: {
         astro: {
-          module: (await import('../../../workers/catalyst-workers/test/fixtures/astro-basic/.output/server/index.mjs')) as unknown as WorkerModule,
+          module: (await import('../../../workers/atua-workers/test/fixtures/astro-basic/.output/server/index.mjs')) as unknown as WorkerModule,
           routes: ['/**'],
         },
       },
     });
 
-    const skRuntime = await CatalystWorkers.create({
+    const skRuntime = await AtuaWorkers.create({
       workers: {
         sveltekit: {
           module: sveltekitBundle as unknown as WorkerModule,

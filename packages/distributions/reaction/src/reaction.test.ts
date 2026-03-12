@@ -5,9 +5,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Reaction } from './index.js';
 import { DenoWasmLoader } from '../../../engines/deno/src/wasm-loader.js';
-import { Catalyst } from '../../../shared/core/src/catalyst.js';
+import { Atua } from '../../../shared/core/src/atua.js';
 
-let instance: Catalyst | null = null;
+let instance: Atua | null = null;
 
 beforeEach(() => {
   DenoWasmLoader.reset();
@@ -22,10 +22,10 @@ afterEach(() => {
 });
 
 describe('Reaction — Factory', () => {
-  it('creates a Catalyst instance', async () => {
+  it('creates an Atua instance', async () => {
     instance = await Reaction.create({ name: `reaction-test-${Date.now()}` });
     expect(instance).toBeDefined();
-    expect(instance).toBeInstanceOf(Catalyst);
+    expect(instance).toBeInstanceOf(Atua);
   });
 
   it('created instance has fs', async () => {
@@ -69,6 +69,6 @@ describe('Reaction — Exports', () => {
     expect(mod.DenoWasmLoader).toBeDefined();
     expect(mod.DenoNativeLoader).toBeDefined();
     expect(mod.createDenoNativeLoader).toBeDefined();
-    expect(mod.Catalyst).toBeDefined();
+    expect(mod.Atua).toBeDefined();
   });
 });

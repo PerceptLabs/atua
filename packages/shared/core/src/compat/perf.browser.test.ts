@@ -4,8 +4,8 @@
  * Measures key operation latencies and reports against targets.
  */
 import { describe, it, expect, afterAll } from 'vitest';
-import { CatalystFS } from '../fs/CatalystFS.js';
-import { CatalystEngine } from '../engine/CatalystEngine.js';
+import { AtuaFS } from '../fs/AtuaFS.js';
+import { AtuaEngine } from '../engine/AtuaEngine.js';
 import { ContentHashCache } from '../dev/ContentHashCache.js';
 
 interface PerfResult {
@@ -37,9 +37,9 @@ function reportPerf(
   });
 }
 
-describe('Performance — CatalystFS', () => {
+describe('Performance — AtuaFS', () => {
   it('should write 1KB within target', async () => {
-    const fs = await CatalystFS.create('perf-fs-w1k');
+    const fs = await AtuaFS.create('perf-fs-w1k');
     const data = 'x'.repeat(1024);
     const times: number[] = [];
 
@@ -49,13 +49,13 @@ describe('Performance — CatalystFS', () => {
       times.push(performance.now() - start);
     }
 
-    reportPerf('CatalystFS write 1KB', times, 5);
+    reportPerf('AtuaFS write 1KB', times, 5);
     expect(times.length).toBe(50);
     fs.destroy();
   });
 
   it('should read 1KB within target', async () => {
-    const fs = await CatalystFS.create('perf-fs-r1k');
+    const fs = await AtuaFS.create('perf-fs-r1k');
     const data = 'x'.repeat(1024);
     fs.writeFileSync('/perf-read.txt', data);
     const times: number[] = [];
@@ -66,13 +66,13 @@ describe('Performance — CatalystFS', () => {
       times.push(performance.now() - start);
     }
 
-    reportPerf('CatalystFS read 1KB', times, 5);
+    reportPerf('AtuaFS read 1KB', times, 5);
     expect(times.length).toBe(50);
     fs.destroy();
   });
 
   it('should readdir 100 files within target', async () => {
-    const fs = await CatalystFS.create('perf-fs-dir');
+    const fs = await AtuaFS.create('perf-fs-dir');
     fs.mkdirSync('/perf-dir', { recursive: true });
     for (let i = 0; i < 100; i++) {
       fs.writeFileSync(`/perf-dir/file-${i}.txt`, `content-${i}`);
@@ -85,7 +85,7 @@ describe('Performance — CatalystFS', () => {
       times.push(performance.now() - start);
     }
 
-    reportPerf('CatalystFS readdir 100 files', times, 20);
+    reportPerf('AtuaFS readdir 100 files', times, 20);
     expect(times.length).toBe(20);
     fs.destroy();
   });
@@ -97,7 +97,7 @@ describe('Performance — QuickJS', () => {
 
     for (let i = 0; i < 3; i++) {
       const start = performance.now();
-      const engine = await CatalystEngine.create();
+      const engine = await AtuaEngine.create();
       times.push(performance.now() - start);
       engine.dispose();
     }
@@ -107,7 +107,7 @@ describe('Performance — QuickJS', () => {
   });
 
   it('should eval simple expression fast', async () => {
-    const engine = await CatalystEngine.create();
+    const engine = await AtuaEngine.create();
     // Warm up
     await engine.eval('1');
 
@@ -123,9 +123,9 @@ describe('Performance — QuickJS', () => {
   });
 
   it('should require fs fast', async () => {
-    const fs = await CatalystFS.create('perf-qjs-fs');
+    const fs = await AtuaFS.create('perf-qjs-fs');
     fs.writeFileSync('/perf-test.txt', 'hello');
-    const engine = await CatalystEngine.create({ fs });
+    const engine = await AtuaEngine.create({ fs });
     // Warm up
     await engine.eval(`require('fs').readFileSync('/perf-test.txt', 'utf-8')`);
 
@@ -181,7 +181,7 @@ describe('Performance — Content Hash Cache', () => {
 });
 
 afterAll(() => {
-  console.log('\n=== Catalyst Performance Benchmark Report ===');
+  console.log('\n=== Atua Performance Benchmark Report ===');
   console.log(
     'Benchmark'.padEnd(35) +
       'Avg (ms)'.padEnd(12) +

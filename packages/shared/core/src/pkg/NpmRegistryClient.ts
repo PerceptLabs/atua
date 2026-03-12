@@ -3,7 +3,7 @@
  *
  * Phase H: Full npm registry protocol implementation.
  * Fetches package tarballs directly from registry.npmjs.org,
- * extracts them, and installs into CatalystFS.
+ * extracts them, and installs into AtuaFS.
  *
  * Features:
  * - Query package metadata from registry
@@ -14,7 +14,7 @@
  * - Dependency resolution (flat)
  */
 
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 
 export interface NpmRegistryConfig {
   /** Registry URL (default: https://registry.npmjs.org) */
@@ -131,12 +131,12 @@ export class NpmRegistryClient {
   }
 
   /**
-   * Download and install a package into CatalystFS.
+   * Download and install a package into AtuaFS.
    */
   async install(
     name: string,
     versionRange: string = 'latest',
-    fs: CatalystFS,
+    fs: AtuaFS,
   ): Promise<InstallResult> {
     const version = await this.resolveVersion(name, versionRange);
     const metadata = await this.getVersionMetadata(name, version);
@@ -178,7 +178,7 @@ export class NpmRegistryClient {
   async installWithDependencies(
     name: string,
     versionRange: string = 'latest',
-    fs: CatalystFS,
+    fs: AtuaFS,
     installed: Set<string> = new Set(),
   ): Promise<InstallResult[]> {
     if (installed.has(name)) return [];
@@ -242,7 +242,7 @@ function encodePackageName(name: string): string {
   return name;
 }
 
-function ensureDir(fs: CatalystFS, path: string): void {
+function ensureDir(fs: AtuaFS, path: string): void {
   const parts = path.split('/').filter(Boolean);
   let current = '';
   for (const part of parts) {

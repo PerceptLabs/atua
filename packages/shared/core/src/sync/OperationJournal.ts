@@ -5,7 +5,7 @@
  * On reconnect, replays journal entries to the server.
  * Supports compaction to prevent unbounded growth.
  */
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 import {
   type FileOperation,
   type FileOperationType,
@@ -13,8 +13,8 @@ import {
 } from './protocol.js';
 
 export interface JournalConfig {
-  /** CatalystFS instance for persistence */
-  fs?: CatalystFS;
+  /** AtuaFS instance for persistence */
+  fs?: AtuaFS;
   /** Path to store journal data (default: /.sync-journal.json) */
   journalPath?: string;
   /** Max operations before auto-compaction (default: 1000) */
@@ -23,7 +23,7 @@ export interface JournalConfig {
 
 export class OperationJournal {
   private operations: FileOperation[] = [];
-  private readonly fs?: CatalystFS;
+  private readonly fs?: AtuaFS;
   private readonly journalPath: string;
   private readonly maxOperations: number;
 

@@ -4,13 +4,13 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ViteRunner } from './ViteRunner.js';
-import { CatalystFS } from '../../fs/CatalystFS.js';
+import { AtuaFS } from '../../fs/AtuaFS.js';
 
-let fs: CatalystFS;
+let fs: AtuaFS;
 let runner: ViteRunner;
 
 beforeEach(async () => {
-  fs = await CatalystFS.create(`vite-test-${Date.now()}`);
+  fs = await AtuaFS.create(`vite-test-${Date.now()}`);
   // Set up minimal project structure
   fs.mkdirSync('/project', { recursive: true });
   fs.mkdirSync('/project/src', { recursive: true });

@@ -1,19 +1,19 @@
-# Catalyst
+# Atua
 
 Standalone browser-native runtime engine.
 
 Provides filesystem, JS execution, networking, process management, package resolution, and dev tooling inside a browser tab. Any application can consume it.
 
-**Package scope:** `@aspect/catalyst-*`
+**Package scope:** `@aspect/atua-*`
 **License:** MIT
 
 ## Packages
 
 | Package | Description |
 |---------|-------------|
-| `@aspect/catalyst-core` | Engine + FS + Net + Proc |
-| `@aspect/catalyst-pkg` | Package management (npm + esm.sh) |
-| `@aspect/catalyst-dev` | Build pipeline + HMR |
+| `@aspect/atua-core` | Engine + FS + Net + Proc |
+| `@aspect/atua-pkg` | Package management (npm + esm.sh) |
+| `@aspect/atua-dev` | Build pipeline + HMR |
 
 ## Development
 

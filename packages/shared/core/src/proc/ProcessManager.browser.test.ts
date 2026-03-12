@@ -5,7 +5,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { ProcessManager } from './ProcessManager.js';
-import { CatalystFS } from '../fs/CatalystFS.js';
+import { AtuaFS } from '../fs/AtuaFS.js';
 
 describe('ProcessManager — exec()', () => {
   it('should exec code and return stdout', async () => {
@@ -167,9 +167,9 @@ describe('ProcessManager — kill()', () => {
   });
 });
 
-describe('ProcessManager — CatalystFS Access', () => {
-  it('should give child processes CatalystFS access', async () => {
-    const fs = await CatalystFS.create({
+describe('ProcessManager — AtuaFS Access', () => {
+  it('should give child processes AtuaFS access', async () => {
+    const fs = await AtuaFS.create({
       name: 'proc-fs-test-' + Date.now(),
       mounts: { '/': 'memory' },
     });
@@ -191,7 +191,7 @@ describe('ProcessManager — CatalystFS Access', () => {
   });
 
   it('should allow child to write files visible to parent', async () => {
-    const fs = await CatalystFS.create({
+    const fs = await AtuaFS.create({
       name: 'proc-fs-write-' + Date.now(),
       mounts: { '/': 'memory' },
     });

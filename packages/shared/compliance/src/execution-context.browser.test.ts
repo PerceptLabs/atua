@@ -9,10 +9,10 @@
  * - Multiple workers with route isolation
  */
 import { describe, it, expect, afterEach } from 'vitest';
-import { CatalystWorkers } from '../../../workers/catalyst-workers/src/runtime.js';
-import type { WorkerModule } from '../../../workers/catalyst-workers/src/runtime.js';
+import { AtuaWorkers } from '../../../workers/atua-workers/src/runtime.js';
+import type { WorkerModule } from '../../../workers/atua-workers/src/runtime.js';
 
-let runtime: CatalystWorkers | null = null;
+let runtime: AtuaWorkers | null = null;
 
 afterEach(async () => {
   if (runtime) {
@@ -35,7 +35,7 @@ describe('Workers Compliance — Execution Context', () => {
       },
     };
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: { w: { module: worker, routes: ['/**'] } },
     });
 
@@ -59,7 +59,7 @@ describe('Workers Compliance — Execution Context', () => {
       },
     };
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: {
         w: {
           module: worker,
@@ -94,7 +94,7 @@ describe('Workers Compliance — Execution Context', () => {
       },
     };
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: { w: { module: worker, routes: ['/**'] } },
     });
 
@@ -113,7 +113,7 @@ describe('Workers Compliance — Execution Context', () => {
       },
     };
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: { w: { module: worker, routes: ['/**'] } },
     });
 
@@ -143,7 +143,7 @@ describe('Workers Compliance — Execution Context', () => {
       },
     };
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: {
         api: { module: apiWorker, routes: ['/api/*'] },
         static: { module: staticWorker, routes: ['/**'] },

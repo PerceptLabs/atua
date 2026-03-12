@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import { NpmRegistryClient } from './NpmRegistryClient.js';
-import { CatalystFS } from '../fs/CatalystFS.js';
+import { AtuaFS } from '../fs/AtuaFS.js';
 
 function mockFetch(data: unknown) {
   return vi.fn().mockImplementation(async () => ({
@@ -110,13 +110,13 @@ describe('NpmRegistryClient', () => {
     }
   });
 
-  it('installs package to CatalystFS', async () => {
+  it('installs package to AtuaFS', async () => {
     const client = new NpmRegistryClient();
     const originalFetch = globalThis.fetch;
     globalThis.fetch = mockFetch(MOCK_METADATA);
 
     try {
-      const fs = await CatalystFS.create('npm-install-test');
+      const fs = await AtuaFS.create('npm-install-test');
       const result = await client.install('lodash', 'latest', fs);
 
       expect(result.name).toBe('lodash');

@@ -5,7 +5,7 @@
  * and executes commands in an isolated context.
  *
  * Phase 13c: Enhanced version added with:
- * - MessagePort-based CatalystFS proxy
+ * - MessagePort-based AtuaFS proxy
  * - StdioBatcher (4KB/16ms flush thresholds)
  * - Console wiring through batcher (NOT direct postMessage)
  * - flushStdio() before every exit message
@@ -137,7 +137,7 @@ boot();
  *
  * This version receives MessagePorts via the 'init' message transfer list:
  *   event.ports[0] = controlPort (exec, kill, stdin)
- *   event.ports[1] = fsPort (CatalystFS proxy)
+ *   event.ports[1] = fsPort (AtuaFS proxy)
  *   event.ports[2] = stdioPort (stdout/stderr batches, exit)
  */
 export function getEnhancedWorkerSource(): string {

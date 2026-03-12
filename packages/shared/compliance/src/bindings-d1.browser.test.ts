@@ -8,12 +8,12 @@
  * Uses a single shared D1 instance to avoid browser resource exhaustion.
  */
 import { describe, it, expect, afterAll } from 'vitest';
-import { CatalystWorkers } from '../../../workers/catalyst-workers/src/runtime.js';
-import { CatalystD1 } from '@aspect/catalyst-workers-d1';
-import type { WorkerModule } from '../../../workers/catalyst-workers/src/runtime.js';
+import { AtuaWorkers } from '../../../workers/atua-workers/src/runtime.js';
+import { AtuaD1 } from '@aspect/atua-workers-d1';
+import type { WorkerModule } from '../../../workers/atua-workers/src/runtime.js';
 
 const dbName = `compliance-d1-${crypto.randomUUID()}`;
-let db: CatalystD1 | null = null;
+let db: AtuaD1 | null = null;
 
 afterAll(async () => {
   if (db) {
@@ -28,7 +28,7 @@ function req(path: string): Request {
 
 describe('Workers Compliance — D1 Binding', () => {
   it('D1Database + PreparedStatement API shape and CRUD', async () => {
-    db = new CatalystD1(dbName);
+    db = new AtuaD1(dbName);
     await db.exec('CREATE TABLE items (id INTEGER PRIMARY KEY, value TEXT)');
 
     const worker: WorkerModule = {
@@ -71,7 +71,7 @@ describe('Workers Compliance — D1 Binding', () => {
       },
     };
 
-    const runtime = await CatalystWorkers.create({
+    const runtime = await AtuaWorkers.create({
       workers: {
         w: {
           module: worker,
@@ -112,7 +112,7 @@ describe('Workers Compliance — D1 Binding', () => {
 
   it('D1 exec runs multiple statements', async () => {
     // Reuse the same db instance
-    if (!db) db = new CatalystD1(dbName);
+    if (!db) db = new AtuaD1(dbName);
 
     const worker: WorkerModule = {
       default: {
@@ -128,7 +128,7 @@ describe('Workers Compliance — D1 Binding', () => {
       },
     };
 
-    const runtime = await CatalystWorkers.create({
+    const runtime = await AtuaWorkers.create({
       workers: {
         w: {
           module: worker,

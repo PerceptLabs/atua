@@ -1,10 +1,10 @@
 /**
- * PackageCache — Manages installed packages in CatalystFS
+ * PackageCache — Manages installed packages in AtuaFS
  *
  * Stores packages at /node_modules/{name}/ with metadata tracking
  * for LRU eviction when cache size exceeds limits.
  */
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 
 export interface CacheEntry {
   name: string;
@@ -23,16 +23,16 @@ export interface PackageCacheConfig {
   basePath?: string;
 }
 
-const METADATA_FILE = '.catalyst-cache.json';
+const METADATA_FILE = '.atua-cache.json';
 
 export class PackageCache {
-  private fs: CatalystFS;
+  private fs: AtuaFS;
   private maxSize: number;
   private basePath: string;
   private entries = new Map<string, CacheEntry>();
   private loaded = false;
 
-  constructor(fs: CatalystFS, config: PackageCacheConfig = {}) {
+  constructor(fs: AtuaFS, config: PackageCacheConfig = {}) {
     this.fs = fs;
     this.maxSize = config.maxSize ?? 500 * 1024 * 1024;
     this.basePath = config.basePath ?? '/node_modules';

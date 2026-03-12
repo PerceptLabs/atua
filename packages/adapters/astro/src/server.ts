@@ -1,5 +1,5 @@
 /**
- * Astro server entry for Catalyst runtime.
+ * Astro server entry for Atua runtime.
  *
  * This file is used by Astro's build system as the server entrypoint.
  * It wraps Astro's SSR App in the Workers module format (export default { fetch }).
@@ -8,7 +8,7 @@
  * The resulting bundle has:
  *   export default { fetch(request, env, ctx) { ... } }
  *
- * Bindings are accessible in Astro pages/endpoints via Astro.locals.catalyst.env.
+ * Bindings are accessible in Astro pages/endpoints via Astro.locals.atua.env.
  */
 
 // @ts-ignore — resolved by Astro's build system
@@ -28,7 +28,7 @@ function getApp() {
 export default {
   /**
    * Workers-compatible fetch handler.
-   * Called by CatalystWorkers runtime for each matching request.
+   * Called by AtuaWorkers runtime for each matching request.
    */
   async fetch(
     request: Request,
@@ -43,9 +43,9 @@ export default {
       return new Response('Not Found', { status: 404 });
     }
 
-    // Inject Catalyst bindings into Astro.locals
+    // Inject Atua bindings into Astro.locals
     const locals = {
-      catalyst: {
+      atua: {
         env,
         ctx,
       },

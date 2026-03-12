@@ -5,7 +5,7 @@
  *
  * Each child process runs in its own Web Worker with its own QuickJS-WASM
  * instance, providing true thread-level isolation. If Workers are unavailable
- * (sandboxed environments), falls back to inline CatalystEngine on the main
+ * (sandboxed environments), falls back to inline AtuaEngine on the main
  * thread.
  *
  * Features:
@@ -15,13 +15,13 @@
  * - Process tree management (PID tracking, listing)
  * - WorkerPool with configurable maxWorkers limit
  * - StdioBatcher for efficient Worker→main thread stdio
- * - CatalystFS access from Workers via MessagePort proxy
+ * - AtuaFS access from Workers via MessagePort proxy
  */
-import { CatalystEngine } from '../engine/CatalystEngine.js';
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import { AtuaEngine } from '../engine/AtuaEngine.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 import type { EngineFactory } from '../engine/interfaces.js';
-import { CatalystWASI } from '../wasi/CatalystWASI.js';
-import { CatalystProcess, type Signal } from './CatalystProcess.js';
+import { AtuaWASI } from '../wasi/AtuaWASI.js';
+import { AtuaProcess, type Signal } from './AtuaProcess.js';
 import { WorkerPool } from './WorkerPool.js';
 import { WorkerBridge } from './WorkerBridge.js';
 import { SIGNALS } from './worker-template.js';
@@ -40,20 +40,20 @@ export interface ExecResult {
 }
 
 export interface ProcessManagerConfig {
-  fs?: CatalystFS;
+  fs?: AtuaFS;
   maxProcesses?: number; // default 32
   maxWorkers?: number; // default 8 — WorkerPool limit
   /** Force inline mode (skip Worker detection) */
   forceInline?: boolean;
-  /** Factory for creating engine instances — defaults to CatalystEngine.create() */
+  /** Factory for creating engine instances — defaults to AtuaEngine.create() */
   engineFactory?: EngineFactory;
 }
 
 export class ProcessManager {
   private nextPid = 1;
-  private processes = new Map<number, CatalystProcess>();
+  private processes = new Map<number, AtuaProcess>();
   private bridges = new Map<number, WorkerBridge>();
-  private fs?: CatalystFS;
+  private fs?: AtuaFS;
   private maxProcesses: number;
   private pool: WorkerPool;
   private forceInline: boolean;
@@ -64,14 +64,14 @@ export class ProcessManager {
     this.maxProcesses = config.maxProcesses ?? 32;
     this.forceInline = config.forceInline ?? false;
     this.pool = new WorkerPool({ maxWorkers: config.maxWorkers ?? 8 });
-    this.engineFactory = config.engineFactory ?? ((cfg) => CatalystEngine.create({
-      fs: cfg.fs as CatalystFS | undefined,
+    this.engineFactory = config.engineFactory ?? ((cfg) => AtuaEngine.create({
+      fs: cfg.fs as AtuaFS | undefined,
       env: cfg.env,
     }));
   }
 
   /**
-   * Execute a WASI binary file from CatalystFS.
+   * Execute a WASI binary file from AtuaFS.
    * Returns collected stdout, stderr, and exit code.
    */
   async execWasm(
@@ -80,11 +80,11 @@ export class ProcessManager {
     options: ProcessOptions = {},
   ): Promise<ExecResult> {
     if (!this.fs) {
-      throw new Error('CatalystFS required for WASI execution');
+      throw new Error('AtuaFS required for WASI execution');
     }
 
     const pid = this.nextPid++;
-    const wasi = CatalystWASI.create({ fs: this.fs });
+    const wasi = AtuaWASI.create({ fs: this.fs });
 
     try {
       const result = await wasi.execFile(path, {
@@ -140,16 +140,16 @@ export class ProcessManager {
 
   /**
    * Spawn a new process that runs the given code.
-   * Returns immediately with a CatalystProcess handle.
+   * Returns immediately with an AtuaProcess handle.
    * Tries Worker-based isolation first, falls back to inline.
    */
-  spawn(code: string, options: ProcessOptions = {}): CatalystProcess {
+  spawn(code: string, options: ProcessOptions = {}): AtuaProcess {
     if (this.processes.size >= this.maxProcesses) {
       throw new Error(`Maximum process limit (${this.maxProcesses}) reached`);
     }
 
     const pid = this.nextPid++;
-    const proc = new CatalystProcess(pid);
+    const proc = new AtuaProcess(pid);
     this.processes.set(pid, proc);
 
     // Clean up when process exits
@@ -173,7 +173,7 @@ export class ProcessManager {
    * Start a process — tries Worker first, falls back to inline.
    */
   private async startProcess(
-    proc: CatalystProcess,
+    proc: AtuaProcess,
     code: string,
     options: ProcessOptions,
   ): Promise<void> {
@@ -189,19 +189,19 @@ export class ProcessManager {
         } catch {
           // Worker failed — fall through to inline
           console.warn(
-            '[catalyst] Worker process failed, falling back to inline mode',
+            '[atua] Worker process failed, falling back to inline mode',
           );
         }
       }
     }
 
-    // Fallback: inline CatalystEngine on the main thread
+    // Fallback: inline AtuaEngine on the main thread
     await this.startInlineProcess(proc, code, options);
   }
 
   /** Start a process in a Web Worker (true thread isolation) */
   private async startWorkerProcess(
-    proc: CatalystProcess,
+    proc: AtuaProcess,
     code: string,
     _options: ProcessOptions,
   ): Promise<void> {
@@ -235,7 +235,7 @@ export class ProcessManager {
 
   /** Start a process inline on the main thread (fallback) */
   private async startInlineProcess(
-    proc: CatalystProcess,
+    proc: AtuaProcess,
     code: string,
     options: ProcessOptions,
   ): Promise<void> {
@@ -290,17 +290,17 @@ export class ProcessManager {
   }
 
   /** Get a process by PID */
-  getProcess(pid: number): CatalystProcess | undefined {
+  getProcess(pid: number): AtuaProcess | undefined {
     return this.processes.get(pid);
   }
 
   /** List all tracked processes */
-  listProcesses(): CatalystProcess[] {
+  listProcesses(): AtuaProcess[] {
     return [...this.processes.values()];
   }
 
   /** List only running processes */
-  listRunning(): CatalystProcess[] {
+  listRunning(): AtuaProcess[] {
     return this.listProcesses().filter((p) => p.state === 'running');
   }
 

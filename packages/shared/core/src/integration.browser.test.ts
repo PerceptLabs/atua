@@ -1,13 +1,13 @@
 /**
  * Integration Tests — End-to-end proof that all layers work together
  *
- * Tests the full Catalyst stack: CatalystFS + CatalystEngine + ProcessManager +
+ * Tests the full Atua stack: AtuaFS + AtuaEngine + ProcessManager +
  * PackageManager + BuildPipeline + HMR in real Chromium.
  */
 import { describe, it, expect } from 'vitest';
-import { Catalyst } from './catalyst.js';
-import { CatalystFS } from './fs/CatalystFS.js';
-import { CatalystEngine } from './engine/CatalystEngine.js';
+import { Atua } from './atua.js';
+import { AtuaFS } from './fs/AtuaFS.js';
+import { AtuaEngine } from './engine/AtuaEngine.js';
 import { ProcessManager } from './proc/ProcessManager.js';
 import { PackageManager } from './pkg/PackageManager.js';
 import { BuildPipeline, PassthroughTranspiler } from './dev/BuildPipeline.js';
@@ -59,32 +59,32 @@ function createMockFetches() {
   };
 }
 
-describe('Integration — Catalyst Factory', () => {
-  it('should create a full Catalyst instance', async () => {
-    const catalyst = await Catalyst.create({ name: 'int-factory-1' });
+describe('Integration — Atua Factory', () => {
+  it('should create a full Atua instance', async () => {
+    const atua = await Atua.create({ name: 'int-factory-1' });
 
-    expect(catalyst.fs).toBeDefined();
-    expect(catalyst.processes).toBeDefined();
-    expect(catalyst.packages).toBeDefined();
-    expect(catalyst.buildPipeline).toBeDefined();
-    expect(catalyst.hmr).toBeDefined();
+    expect(atua.fs).toBeDefined();
+    expect(atua.processes).toBeDefined();
+    expect(atua.packages).toBeDefined();
+    expect(atua.buildPipeline).toBeDefined();
+    expect(atua.hmr).toBeDefined();
 
-    catalyst.dispose();
+    atua.dispose();
   });
 
   it('should eval code through the factory', async () => {
-    const catalyst = await Catalyst.create({ name: 'int-eval-1' });
+    const atua = await Atua.create({ name: 'int-eval-1' });
 
-    const result = await catalyst.eval('1 + 2');
+    const result = await atua.eval('1 + 2');
     expect(result).toBe(3);
 
-    catalyst.dispose();
+    atua.dispose();
   });
 });
 
 describe('Integration — Package Install + Require', () => {
   it('should install a package and require it in QuickJS', async () => {
-    const fs = await CatalystFS.create('int-pkg-1');
+    const fs = await AtuaFS.create('int-pkg-1');
     const mocks = createMockFetches();
     const pm = new PackageManager({
       fs,
@@ -97,7 +97,7 @@ describe('Integration — Package Install + Require', () => {
     expect(fs.existsSync('/node_modules/lodash/index.js')).toBe(true);
 
     // Create engine and use the package
-    const engine = await CatalystEngine.create({ fs });
+    const engine = await AtuaEngine.create({ fs });
     try {
       const result = await engine.eval(`
         var _ = require('lodash');
@@ -112,7 +112,7 @@ describe('Integration — Package Install + Require', () => {
 
 describe('Integration — installAll from package.json', () => {
   it('should install all dependencies from package.json and use them', async () => {
-    const fs = await CatalystFS.create('int-installall-1');
+    const fs = await AtuaFS.create('int-installall-1');
     const mocks = createMockFetches();
     const pm = new PackageManager({
       fs,
@@ -134,7 +134,7 @@ describe('Integration — installAll from package.json', () => {
     expect(results[0].name).toBe('lodash');
 
     // Verify require works
-    const engine = await CatalystEngine.create({ fs });
+    const engine = await AtuaEngine.create({ fs });
     try {
       const result = await engine.eval(`require('lodash').add(3, 4)`);
       expect(result).toBe(7);
@@ -146,7 +146,7 @@ describe('Integration — installAll from package.json', () => {
 
 describe('Integration — File Watch + Build', () => {
   it('should detect file change and rebuild', async () => {
-    const fs = await CatalystFS.create('int-hmr-1');
+    const fs = await AtuaFS.create('int-hmr-1');
     const pipeline = new BuildPipeline(fs, new PassthroughTranspiler());
     const { HMRManager } = await import('./dev/HMRManager.js');
     const hmr = new HMRManager(fs, pipeline, { entryPoint: '/src/index.js' });
@@ -173,7 +173,7 @@ describe('Integration — File Watch + Build', () => {
 
 describe('Integration — Process Execution', () => {
   it('should exec code in a child process and capture stdout', async () => {
-    const fs = await CatalystFS.create('int-proc-1');
+    const fs = await AtuaFS.create('int-proc-1');
     const pm = new ProcessManager({ fs });
 
     const result = await pm.exec('console.log("hello from child")');
@@ -184,7 +184,7 @@ describe('Integration — Process Execution', () => {
 
 describe('Integration — Sandbox Security', () => {
   it('should block access to window/document from QuickJS', async () => {
-    const engine = await CatalystEngine.create();
+    const engine = await AtuaEngine.create();
     try {
       const result = await engine.eval(
         'typeof window === "undefined" && typeof document === "undefined"',
@@ -206,7 +206,7 @@ describe('Integration — Sandbox Security', () => {
   });
 
   it('should enforce memory limits', async () => {
-    const engine = await CatalystEngine.create({ memoryLimit: 2 }); // 2MB
+    const engine = await AtuaEngine.create({ memoryLimit: 2 }); // 2MB
     try {
       await expect(
         engine.eval(`
@@ -222,8 +222,8 @@ describe('Integration — Sandbox Security', () => {
   });
 
   it('should isolate global state between engines', async () => {
-    const engine1 = await CatalystEngine.create();
-    const engine2 = await CatalystEngine.create();
+    const engine1 = await AtuaEngine.create();
+    const engine2 = await AtuaEngine.create();
     try {
       await engine1.eval('globalThis.secret = 42;');
       const result = await engine2.eval('typeof globalThis.secret');
@@ -237,7 +237,7 @@ describe('Integration — Sandbox Security', () => {
 
 describe('Integration — Offline Packages', () => {
   it('should require cached package without network', async () => {
-    const fs = await CatalystFS.create('int-offline-1');
+    const fs = await AtuaFS.create('int-offline-1');
     const mocks = createMockFetches();
     const pm = new PackageManager({
       fs,
@@ -268,7 +268,7 @@ describe('Integration — Offline Packages', () => {
     expect(info.cached).toBe(true);
 
     // require() should still work
-    const engine = await CatalystEngine.create({ fs });
+    const engine = await AtuaEngine.create({ fs });
     try {
       const result = await engine.eval(`require('lodash').add(5, 5)`);
       expect(result).toBe(10);
@@ -279,16 +279,16 @@ describe('Integration — Offline Packages', () => {
 });
 
 describe('Integration — Persistence', () => {
-  it('should persist files across CatalystFS instances with same name', async () => {
+  it('should persist files across AtuaFS instances with same name', async () => {
     const name = 'int-persist-1';
 
     // Write files
-    const fs1 = await CatalystFS.create(name);
+    const fs1 = await AtuaFS.create(name);
     fs1.writeFileSync('/test.txt', 'persistent data');
     fs1.destroy();
 
     // Recreate with same name
-    const fs2 = await CatalystFS.create(name);
+    const fs2 = await AtuaFS.create(name);
     const exists = fs2.existsSync('/test.txt');
     if (exists) {
       const content = fs2.readFileSync('/test.txt', 'utf-8') as string;

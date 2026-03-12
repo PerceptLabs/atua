@@ -11,8 +11,8 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { NativeEngine } from './NativeEngine.js';
-import { CatalystEngine } from '../../engine/CatalystEngine.js';
-import { CatalystFS } from '../../fs/CatalystFS.js';
+import { AtuaEngine } from '../../engine/AtuaEngine.js';
+import { AtuaFS } from '../../fs/AtuaFS.js';
 import type { IEngine } from '../../engine/interfaces.js';
 
 describe('NativeEngine', () => {
@@ -211,7 +211,7 @@ describe('NativeEngine', () => {
 
   describe('Filesystem integration', () => {
     it('reads files via require("fs")', async () => {
-      const fs = await CatalystFS.create('native-engine-test');
+      const fs = await AtuaFS.create('native-engine-test');
       fs.writeFileSync('/test.txt', 'hello from fs');
 
       const fsEngine = await NativeEngine.create({ fs });
@@ -226,7 +226,7 @@ describe('NativeEngine', () => {
     });
 
     it('evaluates files from filesystem', async () => {
-      const fs = await CatalystFS.create('native-engine-evalfile-test');
+      const fs = await AtuaFS.create('native-engine-evalfile-test');
       fs.writeFileSync('/script.js', 'module.exports = 42;');
 
       const fsEngine = await NativeEngine.create({ fs });
@@ -281,5 +281,5 @@ describe('IEngine contract — QuickJS vs Native', () => {
   runContractTests('NativeEngine', () => NativeEngine.create());
 
   // Test QuickJSEngine against the same IEngine contract
-  runContractTests('QuickJSEngine', () => CatalystEngine.create());
+  runContractTests('QuickJSEngine', () => AtuaEngine.create());
 });

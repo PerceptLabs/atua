@@ -4,36 +4,36 @@
  * Phase 13d: Proves "secure by default" claim.
  *
  * Tests three security surfaces:
- * 1. CatalystFS — path traversal & null byte injection
- * 2. CatalystEngine — QuickJS sandbox escape prevention
+ * 1. AtuaFS — path traversal & null byte injection
+ * 2. AtuaEngine — QuickJS sandbox escape prevention
  * 3. CatalystNet — domain filtering, protocol validation
  *
  * If any test fails, there is a real vulnerability.
  */
 import { describe, it, expect } from 'vitest';
-import { CatalystFS } from '../fs/CatalystFS.js';
-import { CatalystEngine } from '../engine/CatalystEngine.js';
+import { AtuaFS } from '../fs/AtuaFS.js';
+import { AtuaEngine } from '../engine/AtuaEngine.js';
 import { FetchProxy, FetchBlockedError } from '../net/FetchProxy.js';
 
 // =========================================================================
-// CatalystFS — Path Traversal & Injection
+// AtuaFS — Path Traversal & Injection
 // =========================================================================
 
-describe('Security — CatalystFS Path Traversal', () => {
+describe('Security — AtuaFS Path Traversal', () => {
   it('readFileSync("../../etc/passwd") should throw', async () => {
-    const fs = await CatalystFS.create('sec-traverse-read-' + Date.now());
+    const fs = await AtuaFS.create('sec-traverse-read-' + Date.now());
     expect(() => fs.readFileSync('../../etc/passwd', 'utf-8')).toThrow();
     fs.destroy();
   });
 
   it('writeFileSync("../../../tmp/evil", data) should throw', async () => {
-    const fs = await CatalystFS.create('sec-traverse-write-' + Date.now());
+    const fs = await AtuaFS.create('sec-traverse-write-' + Date.now());
     expect(() => fs.writeFileSync('../../../tmp/evil', 'data')).toThrow();
     fs.destroy();
   });
 
   it('mkdirSync("/project/../../../escape") should throw or be contained', async () => {
-    const fs = await CatalystFS.create('sec-traverse-mkdir-' + Date.now());
+    const fs = await AtuaFS.create('sec-traverse-mkdir-' + Date.now());
     try {
       fs.mkdirSync('/project/../../../escape', { recursive: true });
       // If it didn't throw, the path should be normalized to stay within the FS
@@ -48,7 +48,7 @@ describe('Security — CatalystFS Path Traversal', () => {
   });
 
   it('readdirSync("/") should only return mounted paths, not host FS', async () => {
-    const fs = await CatalystFS.create('sec-traverse-readdir-' + Date.now());
+    const fs = await AtuaFS.create('sec-traverse-readdir-' + Date.now());
     const entries = fs.readdirSync('/');
     // Should not contain host filesystem entries like 'etc', 'usr', 'var', 'home'
     const hostPaths = ['etc', 'usr', 'var', 'home', 'bin', 'sbin', 'proc', 'sys'];
@@ -59,7 +59,7 @@ describe('Security — CatalystFS Path Traversal', () => {
   });
 
   it('should normalize path traversal attempts', async () => {
-    const fs = await CatalystFS.create('sec-traverse-norm-' + Date.now());
+    const fs = await AtuaFS.create('sec-traverse-norm-' + Date.now());
     fs.mkdirSync('/project', { recursive: true });
     fs.writeFileSync('/project/safe.txt', 'safe content');
 
@@ -75,13 +75,13 @@ describe('Security — CatalystFS Path Traversal', () => {
 });
 
 // =========================================================================
-// CatalystEngine — Sandbox Escape Prevention
+// AtuaEngine — Sandbox Escape Prevention
 // =========================================================================
 
-describe('Security — CatalystEngine Sandbox Escape', () => {
+describe('Security — AtuaEngine Sandbox Escape', () => {
   it('Function("return this")() should NOT return window/self', async () => {
-    const fs = await CatalystFS.create('sec-sandbox-func-' + Date.now());
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('sec-sandbox-func-' + Date.now());
+    const engine = await AtuaEngine.create({ fs });
 
     const result = await engine.eval(
       `typeof Function('return this')()`,
@@ -100,8 +100,8 @@ describe('Security — CatalystEngine Sandbox Escape', () => {
   });
 
   it('this.constructor.constructor("return this")() should be contained', async () => {
-    const fs = await CatalystFS.create('sec-sandbox-ctor-' + Date.now());
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('sec-sandbox-ctor-' + Date.now());
+    const engine = await AtuaEngine.create({ fs });
 
     const result = await engine.eval(
       `typeof this.constructor.constructor('return this')()`,
@@ -119,8 +119,8 @@ describe('Security — CatalystEngine Sandbox Escape', () => {
   });
 
   it('typeof window should be "undefined"', async () => {
-    const fs = await CatalystFS.create('sec-sandbox-window-' + Date.now());
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('sec-sandbox-window-' + Date.now());
+    const engine = await AtuaEngine.create({ fs });
 
     const result = await engine.eval(`typeof window`);
     expect(result).toBe('undefined');
@@ -130,8 +130,8 @@ describe('Security — CatalystEngine Sandbox Escape', () => {
   });
 
   it('typeof document should be "undefined"', async () => {
-    const fs = await CatalystFS.create('sec-sandbox-doc-' + Date.now());
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('sec-sandbox-doc-' + Date.now());
+    const engine = await AtuaEngine.create({ fs });
 
     const result = await engine.eval(`typeof document`);
     expect(result).toBe('undefined');
@@ -141,8 +141,8 @@ describe('Security — CatalystEngine Sandbox Escape', () => {
   });
 
   it('typeof globalThis.fetch should be "undefined"', async () => {
-    const fs = await CatalystFS.create('sec-sandbox-fetch-' + Date.now());
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('sec-sandbox-fetch-' + Date.now());
+    const engine = await AtuaEngine.create({ fs });
 
     const result = await engine.eval(`typeof globalThis.fetch`);
     expect(result).toBe('undefined');
@@ -152,8 +152,8 @@ describe('Security — CatalystEngine Sandbox Escape', () => {
   });
 
   it('typeof self should be "undefined"', async () => {
-    const fs = await CatalystFS.create('sec-sandbox-self-' + Date.now());
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('sec-sandbox-self-' + Date.now());
+    const engine = await AtuaEngine.create({ fs });
 
     const result = await engine.eval(`typeof self`);
     expect(result).toBe('undefined');
@@ -163,8 +163,8 @@ describe('Security — CatalystEngine Sandbox Escape', () => {
   });
 
   it('memory bomb should be terminated by memory limit', async () => {
-    const fs = await CatalystFS.create('sec-sandbox-mem-' + Date.now());
-    const engine = await CatalystEngine.create({ fs, memoryLimit: 8 }); // 8MB limit
+    const fs = await AtuaFS.create('sec-sandbox-mem-' + Date.now());
+    const engine = await AtuaEngine.create({ fs, memoryLimit: 8 }); // 8MB limit
 
     try {
       await engine.eval(`var a = []; while(true) a.push(new Array(1000000))`);
@@ -179,8 +179,8 @@ describe('Security — CatalystEngine Sandbox Escape', () => {
   });
 
   it('process.exit(0) should exit QuickJS context, NOT the browser tab', async () => {
-    const fs = await CatalystFS.create('sec-sandbox-exit-' + Date.now());
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('sec-sandbox-exit-' + Date.now());
+    const engine = await AtuaEngine.create({ fs });
 
     // process.exit should be a no-op or throw — it should NOT kill the browser
     try {
@@ -197,8 +197,8 @@ describe('Security — CatalystEngine Sandbox Escape', () => {
   });
 
   it('require("child_process") should throw or return stub', async () => {
-    const fs = await CatalystFS.create('sec-sandbox-cp-' + Date.now());
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('sec-sandbox-cp-' + Date.now());
+    const engine = await AtuaEngine.create({ fs });
 
     try {
       await engine.eval(`require('child_process').exec('ls')`);
@@ -213,8 +213,8 @@ describe('Security — CatalystEngine Sandbox Escape', () => {
   });
 
   it('require("net") should throw or return stub', async () => {
-    const fs = await CatalystFS.create('sec-sandbox-net-' + Date.now());
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('sec-sandbox-net-' + Date.now());
+    const engine = await AtuaEngine.create({ fs });
 
     try {
       await engine.eval(`require('net').connect()`);
@@ -228,8 +228,8 @@ describe('Security — CatalystEngine Sandbox Escape', () => {
   });
 
   it('deeply nested requires should not stack overflow', async () => {
-    const fs = await CatalystFS.create('sec-sandbox-deep-' + Date.now());
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('sec-sandbox-deep-' + Date.now());
+    const engine = await AtuaEngine.create({ fs });
 
     // Write chain of modules that require each other
     fs.mkdirSync('/deep', { recursive: true });
@@ -376,8 +376,8 @@ describe('Security — CatalystNet Domain Filtering', () => {
 
 describe('Security — Combined sandbox checks', () => {
   it('QuickJS cannot access browser APIs via any known escape vector', async () => {
-    const fs = await CatalystFS.create('sec-combined-' + Date.now());
-    const engine = await CatalystEngine.create({ fs });
+    const fs = await AtuaFS.create('sec-combined-' + Date.now());
+    const engine = await AtuaEngine.create({ fs });
 
     // Test multiple known escape vectors
     const checks = [
@@ -403,24 +403,24 @@ describe('Security — Combined sandbox checks', () => {
     fs.destroy();
   });
 
-  it('require("fs") in QuickJS accesses CatalystFS, not host FS', async () => {
-    const fs = await CatalystFS.create('sec-combined-fs-' + Date.now());
-    fs.writeFileSync('/marker.txt', 'catalyst-virtual');
-    const engine = await CatalystEngine.create({ fs });
+  it('require("fs") in QuickJS accesses AtuaFS, not host FS', async () => {
+    const fs = await AtuaFS.create('sec-combined-fs-' + Date.now());
+    fs.writeFileSync('/marker.txt', 'atua-virtual');
+    const engine = await AtuaEngine.create({ fs });
 
     // Write a file and read it back
     const result = await engine.eval(`
       var fs = require('fs');
       fs.readFileSync('/marker.txt', 'utf-8');
     `);
-    expect(result).toBe('catalyst-virtual');
+    expect(result).toBe('atua-virtual');
 
-    // Try to read something that exists on the host but not in CatalystFS
+    // Try to read something that exists on the host but not in AtuaFS
     try {
       await engine.eval(`require('fs').readFileSync('/etc/hostname', 'utf-8')`);
       // If it didn't throw, it should return undefined or empty — not the host's hostname
     } catch {
-      // Throwing is expected — file doesn't exist in CatalystFS
+      // Throwing is expected — file doesn't exist in AtuaFS
     }
 
     engine.dispose();

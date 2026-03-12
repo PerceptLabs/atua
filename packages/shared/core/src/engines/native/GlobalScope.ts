@@ -87,11 +87,11 @@ export function getNodeGlobalsCode(options: {
       argv0: 'node',
       execArgv: [],
       execPath: '/usr/local/bin/node',
-      title: 'catalyst',
-      stdout: { write: function(d) { self.__catalyst_stdout(typeof d === 'string' ? d : String(d)); } },
-      stderr: { write: function(d) { self.__catalyst_stderr(typeof d === 'string' ? d : String(d)); } },
+      title: 'atua',
+      stdout: { write: function(d) { self.__atua_stdout(typeof d === 'string' ? d : String(d)); } },
+      stderr: { write: function(d) { self.__atua_stderr(typeof d === 'string' ? d : String(d)); } },
       stdin: { readable: false, read: function() { return null; } },
-      exit: function(code) { self.__catalyst_exit(code || 0); },
+      exit: function(code) { self.__atua_exit(code || 0); },
       nextTick: function(fn) {
         var args = [];
         for (var i = 1; i < arguments.length; i++) args.push(arguments[i]);

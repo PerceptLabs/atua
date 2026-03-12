@@ -42,7 +42,7 @@ export function getProcessSource(env?: Record<string, string>): string {
     },
     pid: 1,
     ppid: 0,
-    title: 'catalyst',
+    title: 'atua',
     execPath: '/usr/local/bin/node',
     execArgv: [],
     stdin: null,
@@ -185,7 +185,7 @@ export function getProcessSource(env?: Record<string, string>): string {
     },
 
     release: {
-      name: 'catalyst'
+      name: 'atua'
     }
   };
 

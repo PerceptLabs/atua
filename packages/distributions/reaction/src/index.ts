@@ -1,26 +1,26 @@
 /**
- * @aspect/reaction — Distribution package for Full mode (Deno-in-WASM)
+ * @aspect/atua-deno — Distribution package for Full mode (Deno-in-WASM)
  *
  * Wires DenoEngine + DenoNativeLoader for 100% Node.js compatibility.
  *
  * Usage:
- *   import { Reaction } from '@aspect/reaction';
+ *   import { Reaction } from '@aspect/atua-deno';
  *   const runtime = await Reaction.create({ name: 'my-app' });
  *   await runtime.engine.evalFile('/project/server.js');
  */
 
-import { Catalyst } from '../../../shared/core/src/catalyst.js';
-import type { CatalystConfig } from '../../../shared/core/src/catalyst.js';
+import { Atua } from '../../../shared/core/src/atua.js';
+import type { AtuaConfig } from '../../../shared/core/src/atua.js';
 import { createDenoEngine } from '../../../engines/deno/src/engine.js';
 import { createDenoNativeLoader } from '../../../engines/deno/src/loaders/deno-native-loader.js';
 
-export interface ReactionConfig extends Omit<CatalystConfig, 'engineFactory' | 'moduleLoaderFactory'> {
+export interface ReactionConfig extends Omit<AtuaConfig, 'engineFactory' | 'moduleLoaderFactory'> {
   wasm?: { wasmUrl?: string; cache?: boolean };
 }
 
 export class Reaction {
-  static async create(config: ReactionConfig = {}): Promise<Catalyst> {
-    return Catalyst.create({
+  static async create(config: ReactionConfig = {}): Promise<Atua> {
+    return Atua.create({
       ...config,
       engineFactory: createDenoEngine,
       moduleLoaderFactory: createDenoNativeLoader,
@@ -37,18 +37,18 @@ export type { DenoEngineConfig, OpsBridgeConfig, OpResult, DenoWasmInstance, Was
   from '../../../engines/deno/src/index.js';
 
 // Re-exports — core runtime
-export { Catalyst } from '../../../shared/core/src/catalyst.js';
+export { Atua } from '../../../shared/core/src/atua.js';
 
 // Re-exports — tiered engine architecture
 export {
   QuickJSEngine, NativeEngine, NativeModuleLoader, TieredEngine,
   CodeValidator, checkCode, validateImports, runInSandbox,
-  CatalystHTTPServer, createHTTPServer, getHTTPModuleSource,
-  CatalystDNS, getDNSModuleSource,
-  CatalystTCPSocket, CatalystTCPServer, createConnection, getNetModuleSource,
+  AtuaHTTPServer, createHTTPServer, getHTTPModuleSource,
+  AtuaDNS, getDNSModuleSource,
+  AtuaTCPSocket, AtuaTCPServer, createConnection, getNetModuleSource,
   tlsConnect, createTLSServer, getTLSModuleSource,
   pipeProcesses, pipeToFile, pipeFromFile, teeProcess, collectOutput, collectErrors,
-  CatalystCluster, getClusterModuleSource,
+  AtuaCluster, getClusterModuleSource,
   NpmRegistryClient, AddonRegistry, NpmProcessRunner,
   WorkersComplianceGate,
 } from '../../../shared/core/src/index.js';

@@ -4,16 +4,16 @@
  * Phase 13b: Tests real Hono integration — routing, middleware, error boundaries.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CatalystFS } from '../fs/CatalystFS.js';
+import { AtuaFS } from '../fs/AtuaFS.js';
 import { BuildPipeline, PassthroughTranspiler } from './BuildPipeline.js';
 import { HonoIntegration } from './HonoIntegration.js';
 
 describe('HonoIntegration — Detection', () => {
-  let fs: CatalystFS;
+  let fs: AtuaFS;
   let pipeline: BuildPipeline;
 
   beforeEach(async () => {
-    fs = await CatalystFS.create('hono-detect');
+    fs = await AtuaFS.create('hono-detect');
     pipeline = new BuildPipeline(fs, new PassthroughTranspiler());
   });
 
@@ -65,11 +65,11 @@ describe('HonoIntegration — Detection', () => {
 });
 
 describe('HonoIntegration — Building', () => {
-  let fs: CatalystFS;
+  let fs: AtuaFS;
   let pipeline: BuildPipeline;
 
   beforeEach(async () => {
-    fs = await CatalystFS.create('hono-build');
+    fs = await AtuaFS.create('hono-build');
     pipeline = new BuildPipeline(fs, new PassthroughTranspiler());
   });
 
@@ -99,7 +99,7 @@ app.get('/api/hello', function(c) { return c.json({ message: 'Hello!' }); });`,
     expect(fs.existsSync('/dist/api-sw.js')).toBe(true);
 
     const content = fs.readFileSync('/dist/api-sw.js', 'utf-8') as string;
-    expect(content).toContain('catalystApiHandler');
+    expect(content).toContain('atuaApiHandler');
     expect(content).toContain('/api/hello');
     expect(content).toContain('Hello!');
   });
@@ -136,7 +136,7 @@ var app = new Hono();`,
     const content = fs.readFileSync(result.outputPath!, 'utf-8') as string;
     expect(content).toContain('(function()');
     expect(content).toContain('__honoModules');
-    expect(content).toContain('catalystApiHandler');
+    expect(content).toContain('atuaApiHandler');
   });
 
   it('should collect API files', () => {
@@ -153,11 +153,11 @@ var app = new Hono();`,
 });
 
 describe('HonoIntegration — Real Hono Handler', () => {
-  let fs: CatalystFS;
+  let fs: AtuaFS;
   let pipeline: BuildPipeline;
 
   beforeEach(async () => {
-    fs = await CatalystFS.create('hono-handler');
+    fs = await AtuaFS.create('hono-handler');
     pipeline = new BuildPipeline(fs, new PassthroughTranspiler());
   });
 
@@ -177,10 +177,10 @@ app.get('/api/hello', function(c) { return c.json({ message: 'Hello World' }); }
     const self: any = {};
     new Function('self', code)(self);
 
-    expect(typeof self.catalystApiHandler).toBe('function');
+    expect(typeof self.atuaApiHandler).toBe('function');
 
     const request = new Request('http://localhost/api/hello', { method: 'GET' });
-    const response = await self.catalystApiHandler(request);
+    const response = await self.atuaApiHandler(request);
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.message).toBe('Hello World');
@@ -202,7 +202,7 @@ app.post('/api/data', function(c) { return c.json({ received: true }); });`,
     const self: any = {};
     new Function('self', code)(self);
 
-    const response = await self.catalystApiHandler(
+    const response = await self.atuaApiHandler(
       new Request('http://localhost/api/data', { method: 'POST' }),
     );
     expect(response.status).toBe(200);
@@ -226,7 +226,7 @@ app.get('/api/hello', function(c) { return c.json({ ok: true }); });`,
     const self: any = {};
     new Function('self', code)(self);
 
-    const response = await self.catalystApiHandler(
+    const response = await self.atuaApiHandler(
       new Request('http://localhost/api/nonexistent', { method: 'GET' }),
     );
     expect(response.status).toBe(404);
@@ -248,7 +248,7 @@ app.get('/api/users/:id', function(c) { return c.json({ id: c.req.param('id') })
     const self: any = {};
     new Function('self', code)(self);
 
-    const response = await self.catalystApiHandler(
+    const response = await self.atuaApiHandler(
       new Request('http://localhost/api/users/42', { method: 'GET' }),
     );
     expect(response.status).toBe(200);
@@ -272,7 +272,7 @@ app.get('/api/search', function(c) { return c.json({ q: c.req.query('q') }); });
     const self: any = {};
     new Function('self', code)(self);
 
-    const response = await self.catalystApiHandler(
+    const response = await self.atuaApiHandler(
       new Request('http://localhost/api/search?q=test', { method: 'GET' }),
     );
     expect(response.status).toBe(200);
@@ -296,7 +296,7 @@ app.get('/api/esm', (c) => c.json({ esm: true }));`,
     const self: any = {};
     new Function('self', code)(self);
 
-    const response = await self.catalystApiHandler(
+    const response = await self.atuaApiHandler(
       new Request('http://localhost/api/esm', { method: 'GET' }),
     );
     expect(response.status).toBe(200);
@@ -322,7 +322,7 @@ app.get('/api/data', function(c) { return c.json({ data: 1 }); });`,
     const self: any = {};
     new Function('self', code)(self);
 
-    const response = await self.catalystApiHandler(
+    const response = await self.atuaApiHandler(
       new Request('http://localhost/api/data', { method: 'GET' }),
     );
     expect(response.status).toBe(200);
@@ -349,7 +349,7 @@ app.get('/api/chain', function(c) { return c.json({ chained: true }); });`,
     const self: any = {};
     new Function('self', code)(self);
 
-    const response = await self.catalystApiHandler(
+    const response = await self.atuaApiHandler(
       new Request('http://localhost/api/chain', { method: 'GET' }),
     );
     expect(response.status).toBe(200);
@@ -374,7 +374,7 @@ app.get('/hello', function(c) { return c.json({ basePath: true }); });`,
     const self: any = {};
     new Function('self', code)(self);
 
-    const response = await self.catalystApiHandler(
+    const response = await self.atuaApiHandler(
       new Request('http://localhost/api/hello', { method: 'GET' }),
     );
     expect(response.status).toBe(200);
@@ -401,7 +401,7 @@ app.get('/api/fail', function(c) { throw new Error('test error'); });`,
     const self: any = {};
     new Function('self', code)(self);
 
-    const response = await self.catalystApiHandler(
+    const response = await self.atuaApiHandler(
       new Request('http://localhost/api/fail', { method: 'GET' }),
     );
     expect(response.status).toBe(500);
@@ -429,7 +429,7 @@ app.get('/api/user', function(c) { return c.json({ user: c.get('user') }); });`,
     const self: any = {};
     new Function('self', code)(self);
 
-    const response = await self.catalystApiHandler(
+    const response = await self.atuaApiHandler(
       new Request('http://localhost/api/user', { method: 'GET' }),
     );
     expect(response.status).toBe(200);
@@ -453,14 +453,14 @@ app.all('/api/*', function(c) { return c.json({ wildcard: true, path: c.req.path
     const self: any = {};
     new Function('self', code)(self);
 
-    const r1 = await self.catalystApiHandler(
+    const r1 = await self.atuaApiHandler(
       new Request('http://localhost/api/anything', { method: 'GET' }),
     );
     expect(r1.status).toBe(200);
     const b1 = await r1.json();
     expect(b1.wildcard).toBe(true);
 
-    const r2 = await self.catalystApiHandler(
+    const r2 = await self.atuaApiHandler(
       new Request('http://localhost/api/deep/nested/path', { method: 'POST' }),
     );
     expect(r2.status).toBe(200);
@@ -484,17 +484,17 @@ app.get('/api/health', function(c) { return c.text('ok'); });`,
     const self: any = {};
     new Function('self', code)(self);
 
-    const r1 = await self.catalystApiHandler(
+    const r1 = await self.atuaApiHandler(
       new Request('http://localhost/api/users'),
     );
     expect((await r1.json()).users).toEqual([]);
 
-    const r2 = await self.catalystApiHandler(
+    const r2 = await self.atuaApiHandler(
       new Request('http://localhost/api/users', { method: 'POST' }),
     );
     expect(r2.status).toBe(201);
 
-    const r3 = await self.catalystApiHandler(
+    const r3 = await self.atuaApiHandler(
       new Request('http://localhost/api/health'),
     );
     expect(await r3.text()).toBe('ok');
@@ -502,8 +502,8 @@ app.get('/api/health', function(c) { return c.text('ok'); });`,
 });
 
 describe('HonoIntegration — ensureHono', () => {
-  it('should write Hono to CatalystFS /node_modules/hono/', async () => {
-    const fs = await CatalystFS.create('hono-ensure');
+  it('should write Hono to AtuaFS /node_modules/hono/', async () => {
+    const fs = await AtuaFS.create('hono-ensure');
     const pipeline = new BuildPipeline(fs, new PassthroughTranspiler());
 
     const hono = new HonoIntegration(fs, pipeline);
@@ -519,7 +519,7 @@ describe('HonoIntegration — ensureHono', () => {
   });
 
   it('should be idempotent', async () => {
-    const fs = await CatalystFS.create('hono-ensure-idem');
+    const fs = await AtuaFS.create('hono-ensure-idem');
     const pipeline = new BuildPipeline(fs, new PassthroughTranspiler());
 
     const hono = new HonoIntegration(fs, pipeline);

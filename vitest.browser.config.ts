@@ -15,8 +15,8 @@ export default defineConfig({
       { find: '@zenfs/dom', replacement: zenfsDomPath },
       { find: 'quickjs-emscripten', replacement: path.resolve(__dirname, 'packages/shared/core/node_modules/quickjs-emscripten') },
       // Workspace packages — resolve to source for testing (dist not built)
-      { find: '@aspect/catalyst-workers-d1', replacement: path.resolve(__dirname, 'packages/workers/catalyst-workers-d1/src/index.ts') },
-      { find: '@aspect/catalyst-workers', replacement: path.resolve(__dirname, 'packages/workers/catalyst-workers/src/index.ts') },
+      { find: '@aspect/atua-workers-d1', replacement: path.resolve(__dirname, 'packages/workers/atua-workers-d1/src/index.ts') },
+      { find: '@aspect/atua-workers', replacement: path.resolve(__dirname, 'packages/workers/atua-workers/src/index.ts') },
     ],
   },
   optimizeDeps: {

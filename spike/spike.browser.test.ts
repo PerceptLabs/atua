@@ -22,7 +22,7 @@ describe('OPFS — Origin Private File System', () => {
 
     // Write content
     const writable = await fileHandle.createWritable();
-    const content = 'Hello from Catalyst spike test!';
+    const content = 'Hello from Atua spike test!';
     await writable.write(content);
     await writable.close();
 

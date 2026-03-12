@@ -2,13 +2,13 @@
  * Workers Compliance — Runtime APIs
  *
  * Validates that all standard Web APIs expected in a Cloudflare Workers
- * execution context are present and functional when running through CatalystWorkers.
+ * execution context are present and functional when running through AtuaWorkers.
  */
 import { describe, it, expect, afterEach } from 'vitest';
-import { CatalystWorkers } from '../../../workers/catalyst-workers/src/runtime.js';
-import type { WorkerModule } from '../../../workers/catalyst-workers/src/runtime.js';
+import { AtuaWorkers } from '../../../workers/atua-workers/src/runtime.js';
+import type { WorkerModule } from '../../../workers/atua-workers/src/runtime.js';
 
-let runtime: CatalystWorkers | null = null;
+let runtime: AtuaWorkers | null = null;
 
 afterEach(async () => {
   if (runtime) {
@@ -45,7 +45,7 @@ describe('Workers Compliance — Runtime APIs', () => {
       }), { headers });
     });
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: { api: { module: worker, routes: ['/**'] } },
     });
 
@@ -71,7 +71,7 @@ describe('Workers Compliance — Runtime APIs', () => {
       }));
     });
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: { api: { module: worker, routes: ['/**'] } },
     });
 
@@ -101,7 +101,7 @@ describe('Workers Compliance — Runtime APIs', () => {
       }));
     });
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: { api: { module: worker, routes: ['/**'] } },
     });
 
@@ -124,7 +124,7 @@ describe('Workers Compliance — Runtime APIs', () => {
       }));
     });
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: { api: { module: worker, routes: ['/**'] } },
     });
 
@@ -142,7 +142,7 @@ describe('Workers Compliance — Runtime APIs', () => {
       }));
     });
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: { api: { module: worker, routes: ['/**'] } },
     });
 
@@ -162,7 +162,7 @@ describe('Workers Compliance — Runtime APIs', () => {
       }));
     });
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: { api: { module: worker, routes: ['/**'] } },
     });
 
@@ -185,7 +185,7 @@ describe('Workers Compliance — Runtime APIs', () => {
       }));
     });
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: { api: { module: worker, routes: ['/**'] } },
     });
 
@@ -205,7 +205,7 @@ describe('Workers Compliance — Runtime APIs', () => {
       }));
     });
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: { api: { module: worker, routes: ['/**'] } },
     });
 
@@ -226,7 +226,7 @@ describe('Workers Compliance — Runtime APIs', () => {
       }));
     });
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: { api: { module: worker, routes: ['/**'] } },
     });
 
@@ -246,7 +246,7 @@ describe('Workers Compliance — Runtime APIs', () => {
       }));
     });
 
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: { api: { module: worker, routes: ['/**'] } },
     });
 

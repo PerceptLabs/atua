@@ -1,5 +1,5 @@
 /**
- * unenv bridge — Node.js polyfills for CatalystEngine.
+ * unenv bridge — Node.js polyfills for AtuaEngine.
  *
  * Replaces hand-rolled stubs with real implementations:
  * - crypto: Real SHA-256/SHA-1/MD5 + HMAC (pure JS, correct output)
@@ -598,14 +598,14 @@ export function getUnenvOsSource(): string {
     release: function() { return '0.0.0'; },
     tmpdir: function() { return '/tmp'; },
     homedir: function() { return '/home'; },
-    hostname: function() { return 'catalyst'; },
+    hostname: function() { return 'atua'; },
     cpus: function() { return [{ model: 'browser', speed: 0, times: { user: 0, nice: 0, sys: 0, idle: 0, irq: 0 } }]; },
     totalmem: function() { return 4 * 1024 * 1024 * 1024; },
     freemem: function() { return 2 * 1024 * 1024 * 1024; },
     uptime: function() { return Math.floor(Date.now() / 1000); },
     loadavg: function() { return [0, 0, 0]; },
     networkInterfaces: function() { return {}; },
-    userInfo: function() { return { uid: 1000, gid: 1000, username: 'catalyst', homedir: '/home', shell: '/bin/sh' }; },
+    userInfo: function() { return { uid: 1000, gid: 1000, username: 'atua', homedir: '/home', shell: '/bin/sh' }; },
     endianness: function() { return 'LE'; },
     EOL: '\\n'
   };
@@ -833,14 +833,14 @@ export function getUnenvHttpSource(): string {
       throw new Error(
         'http.createServer() is not available in browser. ' +
         'Use Hono routes in /src/api/ instead. ' +
-        'See: catalyst-spec.md Phase 12.'
+        'See: atua-spec.md Phase 12.'
       );
     },
     request: function() {
-      throw new Error('[catalyst] http.request() is not available in browser. Use fetch() instead.');
+      throw new Error('[atua] http.request() is not available in browser. Use fetch() instead.');
     },
     get: function() {
-      throw new Error('[catalyst] http.get() is not available in browser. Use fetch() instead.');
+      throw new Error('[atua] http.get() is not available in browser. Use fetch() instead.');
     },
     IncomingMessage: IncomingMessage,
     ServerResponse: ServerResponse,
@@ -956,7 +956,7 @@ export function getUnenvZlibSource(): string {
 (function() {
   function notAvailable(name) {
     return function() {
-      throw new Error('[catalyst] zlib.' + name + '() is not available in QuickJS sandbox. Use the browser CompressionStream API from host context.');
+      throw new Error('[atua] zlib.' + name + '() is not available in QuickJS sandbox. Use the browser CompressionStream API from host context.');
     };
   }
 
@@ -982,7 +982,7 @@ export function getStubModuleSource(name: string): string {
 (function() {
   function notAvailable(method) {
     return function() {
-      throw new Error('[catalyst] ' + '${name}' + '.' + method + '() is not available in browser sandbox.');
+      throw new Error('[atua] ' + '${name}' + '.' + method + '() is not available in browser sandbox.');
     };
   }
 
@@ -1028,38 +1028,38 @@ export const STUB_MODULES = [
 /** Provider attribution for each module.method — powers the compat report */
 export const PROVIDER_REGISTRY: Record<string, Record<string, string>> = {
   fs: {
-    readFileSync: 'catalyst', writeFileSync: 'catalyst', existsSync: 'catalyst',
-    mkdirSync: 'catalyst', readdirSync: 'catalyst', statSync: 'catalyst',
-    unlinkSync: 'catalyst', renameSync: 'catalyst', copyFileSync: 'catalyst',
-    appendFileSync: 'catalyst', rmdirSync: 'catalyst',
+    readFileSync: 'atua', writeFileSync: 'atua', existsSync: 'atua',
+    mkdirSync: 'atua', readdirSync: 'atua', statSync: 'atua',
+    unlinkSync: 'atua', renameSync: 'atua', copyFileSync: 'atua',
+    appendFileSync: 'atua', rmdirSync: 'atua',
   },
   path: {
-    join: 'catalyst', resolve: 'catalyst', basename: 'catalyst',
-    dirname: 'catalyst', extname: 'catalyst', normalize: 'catalyst',
-    isAbsolute: 'catalyst', sep: 'catalyst', parse: 'catalyst',
+    join: 'atua', resolve: 'atua', basename: 'atua',
+    dirname: 'atua', extname: 'atua', normalize: 'atua',
+    isAbsolute: 'atua', sep: 'atua', parse: 'atua',
   },
   buffer: {
-    'Buffer.from(string)': 'catalyst', 'Buffer.alloc': 'catalyst',
-    'Buffer.isBuffer': 'catalyst', 'Buffer.concat': 'catalyst',
+    'Buffer.from(string)': 'atua', 'Buffer.alloc': 'atua',
+    'Buffer.isBuffer': 'atua', 'Buffer.concat': 'atua',
   },
   events: {
-    'on/emit': 'catalyst', once: 'catalyst',
-    removeAllListeners: 'catalyst', listenerCount: 'catalyst',
+    'on/emit': 'atua', once: 'atua',
+    removeAllListeners: 'atua', listenerCount: 'atua',
   },
   process: {
-    env: 'catalyst', 'cwd()': 'catalyst', platform: 'catalyst', version: 'catalyst',
+    env: 'atua', 'cwd()': 'atua', platform: 'atua', version: 'atua',
   },
   console: {
-    log: 'catalyst', error: 'catalyst', warn: 'catalyst',
+    log: 'atua', error: 'atua', warn: 'atua',
   },
   assert: {
-    ok: 'catalyst', equal: 'catalyst', strictEqual: 'catalyst', deepEqual: 'catalyst',
+    ok: 'atua', equal: 'atua', strictEqual: 'atua', deepEqual: 'atua',
   },
   util: {
-    format: 'catalyst', inspect: 'catalyst',
+    format: 'atua', inspect: 'atua',
   },
   url: {
-    URL: 'catalyst', URLSearchParams: 'catalyst',
+    URL: 'atua', URLSearchParams: 'atua',
   },
   crypto: {
     createHash: 'unenv', createHmac: 'unenv', randomBytes: 'unenv',

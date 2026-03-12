@@ -1,27 +1,27 @@
 /**
- * @aspect/catalyst-astro — Astro integration for Catalyst runtime.
+ * @aspect/atua-astro — Astro integration for Atua runtime.
  *
  * Mirrors @astrojs/cloudflare. Configures Astro to build for the browser-based
- * CatalystWorkers runtime with webworker SSR target.
+ * AtuaWorkers runtime with webworker SSR target.
  *
  * Usage:
  *   // astro.config.mjs
- *   import catalyst from '@aspect/catalyst-astro';
+ *   import catalyst from '@aspect/atua-astro';
  *   export default defineConfig({
  *     output: 'server',
- *     adapter: catalyst(),
+ *     adapter: atua(),
  *   });
  */
 
 /** Astro adapter configuration (matches Astro's AstroAdapter shape) */
-export interface CatalystAstroAdapter {
+export interface AtuaAstroAdapter {
   name: string;
   serverEntrypoint: string;
   exports: string[];
 }
 
 /** Astro integration configuration (matches Astro's AstroIntegration shape) */
-export interface CatalystAstroIntegration {
+export interface AtuaAstroIntegration {
   name: string;
   hooks: {
     'astro:config:setup'?: (options: {
@@ -29,22 +29,22 @@ export interface CatalystAstroIntegration {
       updateConfig: (config: Record<string, unknown>) => void;
     }) => void;
     'astro:config:done'?: (options: {
-      setAdapter: (adapter: CatalystAstroAdapter) => void;
+      setAdapter: (adapter: AtuaAstroAdapter) => void;
     }) => void;
   };
 }
 
 /**
- * Create the Catalyst Astro integration.
+ * Create the Atua Astro integration.
  *
  * Configures:
  * - SSR target: webworker (browser-compatible output)
- * - Server entry: @aspect/catalyst-astro/server (wraps Astro App in fetch)
+ * - Server entry: @aspect/atua-astro/server (wraps Astro App in fetch)
  * - Output: single ES module bundle
  */
-export default function createIntegration(): CatalystAstroIntegration {
+export default function createIntegration(): AtuaAstroIntegration {
   return {
-    name: '@aspect/catalyst-astro',
+    name: '@aspect/atua-astro',
     hooks: {
       'astro:config:setup': ({ updateConfig }) => {
         updateConfig({
@@ -74,8 +74,8 @@ export default function createIntegration(): CatalystAstroIntegration {
       },
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@aspect/catalyst-astro',
-          serverEntrypoint: '@aspect/catalyst-astro/server',
+          name: '@aspect/atua-astro',
+          serverEntrypoint: '@aspect/atua-astro/server',
           exports: ['default'],
         });
       },

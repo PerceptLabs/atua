@@ -1,22 +1,22 @@
 /**
  * Astro Adapter — Browser tests
  *
- * Tests that a pre-built Astro bundle loads in CatalystWorkers,
+ * Tests that a pre-built Astro bundle loads in AtuaWorkers,
  * renders pages, serves API routes, and provides bindings via Astro.locals.
  * Uses a hand-crafted fixture simulating Astro's SSR output.
  */
 import { describe, it, expect, afterEach } from 'vitest';
-import { CatalystWorkers } from '../../../workers/catalyst-workers/src/runtime.js';
-import type { WorkerModule } from '../../../workers/catalyst-workers/src/runtime.js';
+import { AtuaWorkers } from '../../../workers/atua-workers/src/runtime.js';
+import type { WorkerModule } from '../../../workers/atua-workers/src/runtime.js';
 
 // Import the hand-crafted Astro fixture
-import * as astroBundle from '../../../workers/catalyst-workers/test/fixtures/astro-basic/.output/server/index.mjs';
+import * as astroBundle from '../../../workers/atua-workers/test/fixtures/astro-basic/.output/server/index.mjs';
 
 function req(path: string): Request {
   return new Request(`http://localhost${path}`);
 }
 
-let runtime: CatalystWorkers | null = null;
+let runtime: AtuaWorkers | null = null;
 
 afterEach(async () => {
   if (runtime) {
@@ -32,8 +32,8 @@ describe('Astro Adapter — Bundle Loading', () => {
     expect(typeof mod.default.fetch).toBe('function');
   });
 
-  it('Astro SSR bundle loads in CatalystWorkers', async () => {
-    runtime = await CatalystWorkers.create({
+  it('Astro SSR bundle loads in AtuaWorkers', async () => {
+    runtime = await AtuaWorkers.create({
       workers: {
         astro: {
           module: astroBundle as unknown as WorkerModule,
@@ -47,7 +47,7 @@ describe('Astro Adapter — Bundle Loading', () => {
 
 describe('Astro Adapter — Page Rendering', () => {
   it('Astro page renders HTML correctly', async () => {
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: {
         astro: {
           module: astroBundle as unknown as WorkerModule,
@@ -63,11 +63,11 @@ describe('Astro Adapter — Page Rendering', () => {
 
     const html = await response!.text();
     expect(html).toContain('<h1>Welcome to Astro</h1>');
-    expect(html).toContain('Running on Catalyst');
+    expect(html).toContain('Running on Atua');
   });
 
   it('Astro API route returns JSON', async () => {
-    runtime = await CatalystWorkers.create({
+    runtime = await AtuaWorkers.create({
       workers: {
         astro: {
           module: astroBundle as unknown as WorkerModule,
@@ -87,8 +87,8 @@ describe('Astro Adapter — Page Rendering', () => {
 });
 
 describe('Astro Adapter — Bindings', () => {
-  it('Astro.locals.catalyst.env provides bindings', async () => {
-    runtime = await CatalystWorkers.create({
+  it('Astro.locals.atua.env provides bindings', async () => {
+    runtime = await AtuaWorkers.create({
       workers: {
         astro: {
           module: astroBundle as unknown as WorkerModule,

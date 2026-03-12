@@ -1,9 +1,9 @@
 /**
  * BuildPipeline — Source transpilation and bundling
  *
- * Reads source files from CatalystFS, transforms with a configurable
+ * Reads source files from AtuaFS, transforms with a configurable
  * transpiler (esbuild-wasm or custom), bundles modules, writes output
- * to /dist/ in CatalystFS.
+ * to /dist/ in AtuaFS.
  *
  * Features:
  * - TSX/TS/JSX → JS transpilation
@@ -11,11 +11,11 @@
  * - Content-hash caching (skip redundant builds)
  * - Frontend + backend (SW) build passes
  */
-import type { CatalystFS } from '../fs/CatalystFS.js';
+import type { AtuaFS } from '../fs/AtuaFS.js';
 import { ContentHashCache } from './ContentHashCache.js';
 
 export interface BuildConfig {
-  /** Entry point path in CatalystFS (default: '/src/index.tsx') */
+  /** Entry point path in AtuaFS (default: '/src/index.tsx') */
   entryPoint?: string;
   /** Output directory (default: '/dist') */
   outDir?: string;
@@ -144,11 +144,11 @@ export class EsbuildTranspiler implements Transpiler {
 }
 
 export class BuildPipeline {
-  private fs: CatalystFS;
+  private fs: AtuaFS;
   private transpiler: Transpiler;
   private cache: ContentHashCache;
 
-  constructor(fs: CatalystFS, transpiler?: Transpiler) {
+  constructor(fs: AtuaFS, transpiler?: Transpiler) {
     this.fs = fs;
     this.transpiler = transpiler ?? new PassthroughTranspiler();
     this.cache = new ContentHashCache();
@@ -264,7 +264,7 @@ export class BuildPipeline {
     };
   }
 
-  /** Collect source files recursively from CatalystFS */
+  /** Collect source files recursively from AtuaFS */
   private collectSources(path: string, collected: Map<string, string>, depth = 0): void {
     if (collected.has(path)) return;
 
@@ -318,7 +318,7 @@ export class BuildPipeline {
       // Single module — no wrapping needed
       const code = modules.values().next().value!;
       if (platform === 'worker') {
-        return `// Catalyst Worker Build\n${code}`;
+        return `// Atua Worker Build\n${code}`;
       }
       return code;
     }

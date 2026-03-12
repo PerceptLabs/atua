@@ -2,7 +2,7 @@
  * Deno API Shims — Browser-compatible Deno namespace implementation
  *
  * Phase M: Provides the Deno.* API surface so code written for Deno
- * can run in Catalyst's browser runtime.
+ * can run in Atua's browser runtime.
  *
  * Coverage:
  * - Deno.readTextFile / Deno.writeTextFile
@@ -83,7 +83,7 @@ export function buildDenoNamespace(config: DenoApiConfig): Record<string, unknow
     },
 
     lstat: async (path: string) => {
-      // Same as stat for our purposes (no symlinks in CatalystFS)
+      // Same as stat for our purposes (no symlinks in AtuaFS)
       const result = ops.dispatch('op_stat_sync', path);
       if (!(result as any).ok) throw new Error(`ENOENT: ${path}`);
       const s = (result as any).value;
@@ -162,7 +162,7 @@ export function buildDenoNamespace(config: DenoApiConfig): Record<string, unknow
       }
     },
 
-    // HTTP server (stub — real impl would use CatalystHTTP)
+    // HTTP server (stub — real impl would use AtuaHTTP)
     serve: (handler: (req: Request) => Response | Promise<Response>) => {
       return {
         finished: new Promise<void>(() => {}),
@@ -171,7 +171,7 @@ export function buildDenoNamespace(config: DenoApiConfig): Record<string, unknow
       };
     },
 
-    // Permissions (always granted in Catalyst)
+    // Permissions (always granted in Atua)
     permissions: {
       query: async (_desc: { name: string }) => ({ state: 'granted' }),
       request: async (_desc: { name: string }) => ({ state: 'granted' }),
