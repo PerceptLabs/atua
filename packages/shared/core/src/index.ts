@@ -78,9 +78,7 @@ export { pipeProcesses, pipeToFile, pipeFromFile, teeProcess, collectOutput, col
 export { AtuaCluster, getClusterModuleSource } from './proc/index.js';
 export type { ClusterWorker, ClusterSettings } from './proc/index.js';
 
-// Package — registry client, addon registry
-export { NpmRegistryClient } from './pkg/index.js';
-export type { NpmRegistryConfig, PackageMetadata, InstallResult } from './pkg/index.js';
+// Package — addon registry
 export { AddonRegistry } from './pkg/index.js';
 export type { AddonEntry } from './pkg/index.js';
 export { NpmProcessRunner } from './pkg/index.js';

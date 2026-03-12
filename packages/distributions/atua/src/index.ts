@@ -86,8 +86,7 @@ export {
   collectErrors,
   AtuaCluster,
   getClusterModuleSource,
-  // Package — registry & addons
-  NpmRegistryClient,
+  // Package — addons
   AddonRegistry,
   NpmProcessRunner,
   // Compat
@@ -176,10 +175,7 @@ export type {
   // Cluster
   ClusterWorker,
   ClusterSettings,
-  // Package — registry & addons
-  NpmRegistryConfig,
-  PackageMetadata,
-  InstallResult,
+  // Package — addons
   AddonEntry,
   NpmProcessRunnerConfig,
   ScriptRunResult,

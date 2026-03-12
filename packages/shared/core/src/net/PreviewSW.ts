@@ -4,6 +4,7 @@
  * Intercepts fetch requests to serve files from AtuaFS.
  * Receives a MessagePort from the main thread for filesystem access.
  */
+import { getMimeMap } from './mime.js';
 
 /**
  * Returns the Service Worker source code as a string.
@@ -14,7 +15,7 @@ export function getPreviewSWSource(): string {
 // Atua Preview Service Worker
 // Serves files from AtuaFS via MessagePort
 
-const MIME_MAP = ${JSON.stringify(getMimeMapForSW())};
+const MIME_MAP = ${JSON.stringify(getMimeMap())};
 
 let fsPort = null;
 let fsReady = false;
@@ -167,28 +168,3 @@ async function handleRequest(pathname) {
 `;
 }
 
-/**
- * Get the MIME map for embedding in the SW source
- */
-function getMimeMapForSW(): Record<string, string> {
-  return {
-    '.html': 'text/html', '.htm': 'text/html',
-    '.js': 'application/javascript', '.mjs': 'application/javascript',
-    '.cjs': 'application/javascript', '.jsx': 'application/javascript',
-    '.ts': 'application/javascript', '.tsx': 'application/javascript',
-    '.css': 'text/css',
-    '.json': 'application/json',
-    '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
-    '.gif': 'image/gif', '.svg': 'image/svg+xml', '.ico': 'image/x-icon',
-    '.webp': 'image/webp',
-    '.woff': 'font/woff', '.woff2': 'font/woff2',
-    '.ttf': 'font/ttf', '.otf': 'font/otf',
-    '.wasm': 'application/wasm',
-    '.txt': 'text/plain', '.md': 'text/markdown',
-    '.xml': 'application/xml', '.csv': 'text/csv',
-    '.map': 'application/json',
-    '.pdf': 'application/pdf',
-    '.zip': 'application/zip',
-    '.webmanifest': 'application/manifest+json',
-  };
-}

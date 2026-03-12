@@ -24,7 +24,7 @@ describe('Preview Service Worker (Browser)', () => {
   it('should include proper MIME types in SW source', () => {
     const source = getPreviewSWSource();
     expect(source).toContain('text/html');
-    expect(source).toContain('application/javascript');
+    expect(source).toMatch(/javascript/);
     expect(source).toContain('text/css');
     expect(source).toContain('application/json');
   });
@@ -43,7 +43,7 @@ describe('Preview Service Worker (Browser)', () => {
 
   it('MIME types should work correctly in browser', () => {
     expect(getMimeType('/index.html')).toBe('text/html');
-    expect(getMimeType('/app.js')).toBe('application/javascript');
+    expect(getMimeType('/app.js')).toMatch(/javascript/);
     expect(getMimeType('/style.css')).toBe('text/css');
     expect(getMimeType('/data.json')).toBe('application/json');
     expect(getMimeType('/image.png')).toBe('image/png');

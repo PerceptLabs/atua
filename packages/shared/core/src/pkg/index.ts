@@ -12,8 +12,6 @@ export { PackageCache } from './PackageCache.js';
 export type { CacheEntry, PackageCacheConfig } from './PackageCache.js';
 export { PackageManager } from './PackageManager.js';
 export type { PackageInfo, PackageManagerConfig, PackageMode } from './PackageManager.js';
-export { NpmRegistryClient } from './NpmRegistryClient.js';
-export type { NpmRegistryConfig, PackageMetadata, RegistryVersionInfo, InstallResult } from './NpmRegistryClient.js';
 export { AddonRegistry } from './AddonRegistry.js';
 export type { AddonEntry } from './AddonRegistry.js';
 export { NpmProcessRunner } from './NpmProcessRunner.js';

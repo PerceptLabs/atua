@@ -49,7 +49,7 @@ export {
   tlsConnect, createTLSServer, getTLSModuleSource,
   pipeProcesses, pipeToFile, pipeFromFile, teeProcess, collectOutput, collectErrors,
   AtuaCluster, getClusterModuleSource,
-  NpmRegistryClient, AddonRegistry, NpmProcessRunner,
+  AddonRegistry, NpmProcessRunner,
   WorkersComplianceGate,
 } from '../../../shared/core/src/index.js';
 export type {
@@ -58,7 +58,7 @@ export type {
   RequestHandler, SerializedHTTPRequest, SerializedHTTPResponse,
   DNSConfig, TCPConnectionOptions, TLSConnectionOptions,
   ClusterWorker, ClusterSettings,
-  NpmRegistryConfig, PackageMetadata, InstallResult, AddonEntry,
+  AddonEntry,
   NpmProcessRunnerConfig, ScriptRunResult, ScriptPhase,
   ComplianceResult, ComplianceError, ComplianceWarning,
 } from '../../../shared/core/src/index.js';

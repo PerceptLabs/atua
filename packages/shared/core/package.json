@@ -14,10 +14,13 @@
     "build": "tsup src/index.ts --format esm --dts"
   },
   "dependencies": {
+    "@jsr/std__media-types": "^1.1.0",
+    "@jsr/std__semver": "^1.0.8",
     "@zenfs/core": "^2.5.0",
     "@zenfs/dom": "^1.2.0",
     "hono": "^4.12.3",
     "quickjs-emscripten": "^0.32.0",
+    "resolve.exports": "^2.0.3",
     "unenv": "^1.10.0"
   },
   "devDependencies": {

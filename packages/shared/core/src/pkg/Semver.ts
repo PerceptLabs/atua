@@ -1,8 +1,20 @@
 /**
- * Semver — Lightweight semver parsing and range matching
+ * Semver — Thin adapter over @std/semver
  *
- * Supports: ^1.2.3, ~1.2.3, >=1.0.0, 1.x, *, and exact versions.
+ * Preserves the string-based API used by NpmResolver and PackageManager
+ * while delegating to the well-tested @std/semver implementation.
  */
+import {
+  parse as stdParse,
+  tryParse as stdTryParse,
+  parseRange as stdParseRange,
+  tryParseRange as stdTryParseRange,
+  satisfies as stdSatisfies,
+  maxSatisfying as stdMaxSatisfying,
+  compare as stdCompare,
+  format as stdFormat,
+  canParse as stdCanParse,
+} from '@jsr/std__semver';
 
 export interface SemverVersion {
   major: number;
@@ -14,146 +26,119 @@ export interface SemverVersion {
 /** Parse a version string like "1.2.3" or "1.2.3-beta.1" */
 export function parse(version: string): SemverVersion | null {
   const cleaned = version.replace(/^[v=]/, '').trim();
-  const match = cleaned.match(/^(\d+)\.(\d+)\.(\d+)(?:-(.+))?$/);
-  if (!match) return null;
+  const sv = stdTryParse(cleaned);
+  if (!sv) return null;
   return {
-    major: parseInt(match[1], 10),
-    minor: parseInt(match[2], 10),
-    patch: parseInt(match[3], 10),
-    prerelease: match[4],
+    major: sv.major,
+    minor: sv.minor,
+    patch: sv.patch,
+    prerelease: sv.prerelease && sv.prerelease.length > 0 ? sv.prerelease.join('.') : undefined,
   };
 }
 
 /** Compare two versions: -1 if a < b, 0 if equal, 1 if a > b */
 export function compare(a: SemverVersion, b: SemverVersion): -1 | 0 | 1 {
-  if (a.major !== b.major) return a.major < b.major ? -1 : 1;
-  if (a.minor !== b.minor) return a.minor < b.minor ? -1 : 1;
-  if (a.patch !== b.patch) return a.patch < b.patch ? -1 : 1;
-  // Prerelease versions have lower precedence
-  if (a.prerelease && !b.prerelease) return -1;
-  if (!a.prerelease && b.prerelease) return 1;
-  if (a.prerelease && b.prerelease) {
-    return a.prerelease < b.prerelease ? -1 : a.prerelease > b.prerelease ? 1 : 0;
-  }
-  return 0;
+  const sa = stdParse(`${a.major}.${a.minor}.${a.patch}${a.prerelease ? '-' + a.prerelease : ''}`);
+  const sb = stdParse(`${b.major}.${b.minor}.${b.patch}${b.prerelease ? '-' + b.prerelease : ''}`);
+  return stdCompare(sa, sb);
 }
 
 /** Check if version satisfies a range like ^1.2.3, ~1.2.3, >=1.0.0 */
 export function satisfies(version: string, range: string): boolean {
-  const ver = parse(version);
-  if (!ver) return false;
-
   const trimmed = range.trim();
 
-  // Exact version
-  if (/^\d+\.\d+\.\d+/.test(trimmed)) {
-    const rangeVer = parse(trimmed);
-    if (!rangeVer) return false;
-    if (trimmed.startsWith('=')) {
-      return compare(ver, rangeVer) === 0;
-    }
-    // If no prefix, treat as exact match for lockfile-style pinning
-    if (!/[~^>=<]/.test(trimmed)) {
-      return compare(ver, rangeVer) === 0;
-    }
-  }
+  // Handle special cases @std/semver doesn't parse
+  if (trimmed === '*' || trimmed === 'latest' || trimmed === '') return true;
 
-  // Wildcard
-  if (trimmed === '*' || trimmed === 'latest' || trimmed === '') {
-    return true;
-  }
+  const cleaned = version.replace(/^[v=]/, '').trim();
+  const sv = stdTryParse(cleaned);
+  if (!sv) return false;
 
-  // x-range: 1.x, 1.2.x
+  // Handle x-ranges (1.x, 1.2.x) — convert to caret/tilde equivalent
   if (trimmed.includes('x') || trimmed.includes('X')) {
     const parts = trimmed.split('.');
     if (parts[0] && parts[0] !== 'x' && parts[0] !== 'X') {
-      if (ver.major !== parseInt(parts[0], 10)) return false;
+      if (sv.major !== parseInt(parts[0], 10)) return false;
     }
     if (parts[1] && parts[1] !== 'x' && parts[1] !== 'X') {
-      if (ver.minor !== parseInt(parts[1], 10)) return false;
+      if (sv.minor !== parseInt(parts[1], 10)) return false;
     }
     return true;
   }
 
-  // Caret range: ^1.2.3
-  if (trimmed.startsWith('^')) {
-    const rangeVer = parse(trimmed.slice(1));
-    if (!rangeVer) return false;
-    if (ver.major !== rangeVer.major) return false;
-    if (rangeVer.major === 0) {
-      if (ver.minor !== rangeVer.minor) return false;
-      return ver.patch >= rangeVer.patch;
-    }
-    if (ver.minor < rangeVer.minor) return false;
-    if (ver.minor === rangeVer.minor && ver.patch < rangeVer.patch) return false;
-    return true;
+  // Exact version (no operator prefix) — treat as pinned
+  if (/^\d+\.\d+\.\d+/.test(trimmed) && !/[~^>=<]/.test(trimmed)) {
+    const rv = stdTryParse(trimmed);
+    if (!rv) return false;
+    return stdCompare(sv, rv) === 0;
   }
 
-  // Tilde range: ~1.2.3
-  if (trimmed.startsWith('~')) {
-    const rangeVer = parse(trimmed.slice(1));
-    if (!rangeVer) return false;
-    if (ver.major !== rangeVer.major) return false;
-    if (ver.minor !== rangeVer.minor) return false;
-    return ver.patch >= rangeVer.patch;
-  }
-
-  // Comparison ranges: >=1.0.0, >1.0.0, <=1.0.0, <1.0.0
-  if (trimmed.startsWith('>=')) {
-    const rangeVer = parse(trimmed.slice(2));
-    if (!rangeVer) return false;
-    return compare(ver, rangeVer) >= 0;
-  }
-  if (trimmed.startsWith('>')) {
-    const rangeVer = parse(trimmed.slice(1));
-    if (!rangeVer) return false;
-    return compare(ver, rangeVer) > 0;
-  }
-  if (trimmed.startsWith('<=')) {
-    const rangeVer = parse(trimmed.slice(2));
-    if (!rangeVer) return false;
-    return compare(ver, rangeVer) <= 0;
-  }
-  if (trimmed.startsWith('<')) {
-    const rangeVer = parse(trimmed.slice(1));
-    if (!rangeVer) return false;
-    return compare(ver, rangeVer) < 0;
-  }
-
-  return false;
+  const r = stdTryParseRange(trimmed);
+  if (!r) return false;
+  return stdSatisfies(sv, r);
 }
 
 /** Find the latest version from a list that satisfies a range */
 export function maxSatisfying(versions: string[], range: string): string | null {
-  let best: string | null = null;
-  let bestParsed: SemverVersion | null = null;
-
-  for (const v of versions) {
-    if (!satisfies(v, range)) continue;
-    const parsed = parse(v);
-    if (!parsed) continue;
-    // Skip prereleases unless range explicitly targets them
-    if (parsed.prerelease && !range.includes('-')) continue;
-    if (!bestParsed || compare(parsed, bestParsed) > 0) {
-      best = v;
-      bestParsed = parsed;
-    }
+  const trimmed = range.trim();
+  if (trimmed === '*' || trimmed === 'latest' || trimmed === '') {
+    // Return highest non-prerelease version
+    const parsed = versions
+      .map((v) => ({ str: v, sv: stdTryParse(v.replace(/^[v=]/, '').trim()) }))
+      .filter((x) => x.sv && (!x.sv.prerelease || x.sv.prerelease.length === 0));
+    if (parsed.length === 0) return null;
+    parsed.sort((a, b) => stdCompare(a.sv!, b.sv!));
+    return parsed[parsed.length - 1].str;
   }
 
-  return best;
+  // Parse range — handle x-ranges by filtering manually
+  if (trimmed.includes('x') || trimmed.includes('X')) {
+    let best: string | null = null;
+    let bestSv: ReturnType<typeof stdTryParse> = undefined;
+    for (const v of versions) {
+      if (!satisfies(v, trimmed)) continue;
+      const sv = stdTryParse(v.replace(/^[v=]/, '').trim());
+      if (!sv || (sv.prerelease && sv.prerelease.length > 0)) continue;
+      if (!bestSv || stdCompare(sv, bestSv) > 0) {
+        best = v;
+        bestSv = sv;
+      }
+    }
+    return best;
+  }
+
+  const r = stdTryParseRange(trimmed);
+  if (!r) return null;
+
+  const svVersions = versions
+    .map((v) => ({ str: v, sv: stdTryParse(v.replace(/^[v=]/, '').trim()) }))
+    .filter((x): x is { str: string; sv: NonNullable<typeof x.sv> } => {
+      if (!x.sv) return false;
+      // Skip prereleases unless range explicitly targets them
+      if (x.sv.prerelease && x.sv.prerelease.length > 0 && !range.includes('-')) return false;
+      return true;
+    });
+
+  const best = stdMaxSatisfying(svVersions.map((x) => x.sv), r);
+  if (!best) return null;
+
+  // Find the original string for this version
+  const formatted = stdFormat(best);
+  const match = svVersions.find((x) => stdFormat(x.sv) === formatted);
+  return match?.str ?? formatted;
 }
 
 /** Sort versions in ascending order */
 export function sort(versions: string[]): string[] {
   return [...versions].sort((a, b) => {
-    const pa = parse(a);
-    const pb = parse(b);
-    if (!pa || !pb) return 0;
-    return compare(pa, pb);
+    const sa = stdTryParse(a.replace(/^[v=]/, '').trim());
+    const sb = stdTryParse(b.replace(/^[v=]/, '').trim());
+    if (!sa || !sb) return 0;
+    return stdCompare(sa, sb);
   });
 }
 
 /** Check if a string is a valid semver version */
 export function valid(version: string): boolean {
-  return parse(version) !== null;
+  return stdCanParse(version.replace(/^[v=]/, '').trim());
 }
