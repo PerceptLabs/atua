@@ -92,10 +92,10 @@ describe('NpmProcessRunner', () => {
   describe('Tier 0 validation', () => {
     it('blocks scripts that fail validation', async () => {
       const { runner } = await createRunner({ scriptsEnabled: true });
-      // eval() is flagged by CodeValidator AST checker
+      // eval() is flagged by static analysis
       const result = await runner.runScript('pkg', 'postinstall', 'eval("evil code");');
       expect(result.executed).toBe(false);
-      expect(result.skipReason).toContain('Tier 0 validation');
+      expect(result.skipReason).toContain('static analysis');
       expect(result.validation).toBeDefined();
       expect(result.validation!.valid).toBe(false);
     });

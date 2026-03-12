@@ -1,7 +1,7 @@
 /**
  * @aspect/atua — Distribution package for Workers mode
  *
- * Re-exports the complete Atua runtime with QuickJS engine
+ * Re-exports the complete Atua runtime with native V8 execution
  * and NodeCompatLoader pre-wired. Consumers import from this
  * package for the standard Workers-compatible experience.
  *
@@ -15,7 +15,7 @@ export {
   // Top-level factory
   Atua,
   createRuntime,
-  // Engine
+  // Legacy engine (kept for backward compat)
   AtuaEngine,
   NodeCompatLoader,
   // Filesystem
@@ -52,16 +52,13 @@ export {
   ConflictResolver,
   PROTOCOL_VERSION,
   generateOpId,
-  // Engines — tiered architecture
-  QuickJSEngine,
+  // Engines — native V8
   NativeEngine,
   NativeModuleLoader,
-  TieredEngine,
   // Validation
-  CodeValidator,
+  analyzeCode,
   checkCode,
   validateImports,
-  runInSandbox,
   // HTTP server
   AtuaHTTPServer,
   createHTTPServer,
@@ -89,6 +86,10 @@ export {
   // Package — addons
   AddonRegistry,
   NpmProcessRunner,
+  // Execution contexts
+  InlineContext,
+  WorkerContext,
+  ContextRouter,
   // Compat
   WorkersComplianceGate,
   // Version
@@ -150,19 +151,14 @@ export type {
   SyncMessage,
   ConnectionState,
   SyncResult,
-  EngineType,
   // Engines
   NativeEngineConfig,
-  TieredEngineConfig,
   // Validation
-  ValidationResult,
-  ValidatorConfig,
+  AnalysisResult,
   ASTCheckResult,
   ASTViolation,
   ImportValidationResult,
   BlockedImport,
-  SandboxRunResult,
-  SandboxRunConfig,
   // HTTP
   RequestHandler,
   SerializedHTTPRequest,
@@ -180,6 +176,16 @@ export type {
   NpmProcessRunnerConfig,
   ScriptRunResult,
   ScriptPhase,
+  // Execution contexts
+  ExecutionContext,
+  EvalOpts,
+  SpawnOpts,
+  ExecContextResult,
+  ProcessContextResult,
+  ContextStatus,
+  WorkerContextConfig,
+  ExecRequest,
+  ContextRouterConfig,
   // Compat
   ComplianceResult,
   ComplianceError,

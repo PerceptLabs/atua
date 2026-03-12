@@ -100,25 +100,14 @@ describe('Browser Compatibility — Feature Detection', () => {
     expect(['NATIVE', 'UNAVAILABLE']).toContain(result.status);
   });
 
-  it('QuickJS-WASM boot', async () => {
+  it('Native V8 eval', () => {
     let status: 'OK' | 'UNAVAILABLE' = 'UNAVAILABLE';
     try {
-      const { getQuickJS } = await import('quickjs-emscripten');
-      const qjs = await getQuickJS();
-      const runtime = qjs.newRuntime();
-      const ctx = runtime.newContext();
-      const result = ctx.evalCode('1 + 1');
-      if ('value' in result && result.value) {
-        const val = ctx.dump(result.value);
-        result.value.dispose();
-        if (val === 2) status = 'OK';
-      }
-      if ('error' in result && result.error) result.error.dispose();
-      ctx.dispose();
-      runtime.dispose();
+      const fn = new Function('return 1 + 1;');
+      if (fn() === 2) status = 'OK';
     } catch {}
 
-    features.push({ feature: 'QuickJS-WASM', status, fallback: '—' });
+    features.push({ feature: 'Native V8 eval', status, fallback: '—' });
     expect(status).toBe('OK');
   });
 });

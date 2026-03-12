@@ -1,14 +1,14 @@
 /**
- * NpmProcessRunner — Lifecycle script execution with Tier 0 gating
+ * NpmProcessRunner — Lifecycle script execution with static analysis gating
  *
  * Phase F: Runs npm lifecycle scripts (postinstall, preinstall, install)
- * through the security validation pipeline before execution.
+ * through static analysis before execution.
  *
  * Default behavior: lifecycle scripts are OFF.
  * Must be explicitly enabled via `scriptsEnabled: true` or per-package allowlist.
  *
  * Security model:
- * 1. Script source is validated through CodeValidator (Tier 0)
+ * 1. Script source is validated through analyzeCode() (static analysis)
  * 2. Execution happens in an isolated process with restricted FS/network
  * 3. Filesystem access is restricted to the package's own directory
  * 4. Network access is restricted to registry and known CDNs
@@ -16,7 +16,7 @@
 
 import type { AtuaFS } from '../fs/AtuaFS.js';
 import { ProcessManager, type ExecResult } from '../proc/ProcessManager.js';
-import { CodeValidator, type ValidationResult } from '../validation/CodeValidator.js';
+import { analyzeCode, type AnalysisResult } from '../validation/StaticAnalysis.js';
 
 export interface NpmProcessRunnerConfig {
   /** Enable lifecycle script execution (default: false) */
@@ -44,8 +44,8 @@ export interface ScriptRunResult {
   skipReason?: string;
   /** Execution result (if executed) */
   result?: ExecResult;
-  /** Validation result from Tier 0 */
-  validation?: ValidationResult;
+  /** Static analysis result */
+  validation?: AnalysisResult;
 }
 
 export type ScriptPhase = 'preinstall' | 'install' | 'postinstall' | 'prepare';
@@ -63,7 +63,6 @@ export class NpmProcessRunner {
   private config: Required<NpmProcessRunnerConfig>;
   private processManager: ProcessManager;
   private fs: AtuaFS;
-  private validator: CodeValidator;
 
   constructor(
     processManager: ProcessManager,
@@ -80,7 +79,6 @@ export class NpmProcessRunner {
       allowedHosts: config.allowedHosts ?? DEFAULT_ALLOWED_HOSTS,
       skipValidation: config.skipValidation ?? false,
     };
-    this.validator = new CodeValidator();
   }
 
   /**
@@ -120,17 +118,27 @@ export class NpmProcessRunner {
       };
     }
 
-    // Tier 0: Validate script source
-    let validation: ValidationResult | undefined;
+    // Static analysis: validate script source
+    let validation: AnalysisResult | undefined;
     if (!this.config.skipValidation) {
-      validation = await this.validator.validate(scriptSource);
+      validation = analyzeCode(scriptSource);
       if (!validation.valid) {
         return {
           packageName,
           phase,
           executed: false,
-          skipReason: `Script blocked by Tier 0 validation: ${validation.summary.join('; ')}`,
+          skipReason: `Script blocked by static analysis: ${validation.errors.join('; ')}`,
           validation,
+        };
+      }
+      // Block high-risk scripts (eval, Function constructor, child_process)
+      if (validation.estimatedRisk === 'high') {
+        return {
+          packageName,
+          phase,
+          executed: false,
+          skipReason: `Script blocked by static analysis: ${validation.warnings.join('; ')}`,
+          validation: { ...validation, valid: false },
         };
       }
     }
@@ -191,7 +199,7 @@ export class NpmProcessRunner {
       results.push(result);
 
       // Stop on validation failure
-      if (!result.executed && result.skipReason?.includes('Tier 0')) {
+      if (!result.executed && result.skipReason?.includes('static analysis')) {
         break;
       }
 

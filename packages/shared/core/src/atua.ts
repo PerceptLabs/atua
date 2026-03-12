@@ -1,24 +1,27 @@
 /**
  * Atua — Top-level factory for creating a fully-wired Atua instance
  *
- * Composes all layers: AtuaFS, AtuaEngine, ProcessManager,
+ * Composes all layers: AtuaFS, ExecutionContext, ProcessManager,
  * PackageManager, BuildPipeline, HMRManager.
+ *
+ * Uses WorkerContext (V8 Workers) for code execution instead of QuickJS.
  */
 import { AtuaFS } from './fs/AtuaFS.js';
-import { AtuaEngine, type EngineConfig } from './engine/AtuaEngine.js';
-import type { IEngine, EngineFactory, EngineInstanceConfig, ModuleLoaderFactory } from './engine/interfaces.js';
-import { NativeEngine } from './engines/native/NativeEngine.js';
 import { FetchProxy, type FetchProxyConfig } from './net/FetchProxy.js';
 import { ProcessManager } from './proc/ProcessManager.js';
 import { PackageManager, type PackageManagerConfig } from './pkg/PackageManager.js';
 import { BuildPipeline, type BuildConfig, type Transpiler } from './dev/BuildPipeline.js';
 import { HMRManager } from './dev/HMRManager.js';
+import { WorkerContext } from './execution/WorkerContext.js';
+import type { ExecResult } from './execution/types.js';
 
 export interface AtuaConfig {
   /** Instance name (used for persistence) */
   name?: string;
-  /** Engine configuration */
-  engine?: Omit<EngineConfig, 'fs' | 'fetchProxy'>;
+  /** Environment variables */
+  env?: Record<string, string>;
+  /** Working directory */
+  cwd?: string;
   /** Fetch proxy configuration */
   fetch?: FetchProxyConfig;
   /** Package manager configuration */
@@ -28,10 +31,8 @@ export interface AtuaConfig {
     transpiler?: Transpiler;
     config?: BuildConfig;
   };
-  /** Custom engine factory — allows swapping QuickJS for another engine */
-  engineFactory?: EngineFactory;
-  /** Custom module loader factory — allows swapping NodeCompatLoader */
-  moduleLoaderFactory?: ModuleLoaderFactory;
+  /** Execution timeout in ms */
+  timeout?: number;
 }
 
 export class Atua {
@@ -42,31 +43,31 @@ export class Atua {
   readonly hmr: HMRManager;
   readonly fetchProxy?: FetchProxy;
 
-  private _engine: IEngine | null = null;
-  private engineConfig: Omit<EngineConfig, 'fs' | 'fetchProxy'>;
-  private _engineFactory?: EngineFactory;
-  private _moduleLoaderFactory?: ModuleLoaderFactory;
+  private _workerContext: WorkerContext | null = null;
+  private env: Record<string, string>;
+  private cwd: string;
+  private timeout: number;
 
   private constructor(
     fs: AtuaFS,
-    engineConfig: Omit<EngineConfig, 'fs' | 'fetchProxy'>,
     fetchProxy: FetchProxy | undefined,
     processes: ProcessManager,
     packages: PackageManager,
     buildPipeline: BuildPipeline,
     hmr: HMRManager,
-    engineFactory?: EngineFactory,
-    moduleLoaderFactory?: ModuleLoaderFactory,
+    env: Record<string, string>,
+    cwd: string,
+    timeout: number,
   ) {
     this.fs = fs;
-    this.engineConfig = engineConfig;
     this.fetchProxy = fetchProxy;
     this.processes = processes;
     this.packages = packages;
     this.buildPipeline = buildPipeline;
     this.hmr = hmr;
-    this._engineFactory = engineFactory;
-    this._moduleLoaderFactory = moduleLoaderFactory;
+    this.env = env;
+    this.cwd = cwd;
+    this.timeout = timeout;
   }
 
   /**
@@ -77,10 +78,7 @@ export class Atua {
 
     const fetchProxy = config.fetch ? new FetchProxy(config.fetch) : undefined;
 
-    const processes = new ProcessManager({
-      fs,
-      engineFactory: config.engineFactory,
-    });
+    const processes = new ProcessManager({ fs });
 
     const packages = new PackageManager({
       fs,
@@ -93,61 +91,38 @@ export class Atua {
 
     return new Atua(
       fs,
-      config.engine ?? {},
       fetchProxy,
       processes,
       packages,
       buildPipeline,
       hmr,
-      config.engineFactory,
-      config.moduleLoaderFactory,
+      config.env ?? {},
+      config.cwd ?? '/',
+      config.timeout ?? 30_000,
     );
   }
 
   /**
-   * Get or create the engine (lazy-initialized).
-   * Uses the custom engineFactory if provided, otherwise defaults to AtuaEngine.
+   * Get or create the WorkerContext (lazy-initialized).
    */
-  async getEngine(): Promise<IEngine> {
-    if (!this._engine) {
-      if (this._engineFactory) {
-        this._engine = await this._engineFactory({
-          fs: this.fs,
-          net: this.fetchProxy,
-          env: this.engineConfig.env,
-          moduleLoader: this._moduleLoaderFactory
-            ? this._moduleLoaderFactory({ fs: this.fs, env: this.engineConfig.env })
-            : undefined,
-        });
-      } else {
-        this._engine = await AtuaEngine.create({
-          fs: this.fs,
-          fetchProxy: this.fetchProxy,
-          ...this.engineConfig,
-        });
-      }
+  getWorkerContext(): WorkerContext {
+    if (!this._workerContext) {
+      this._workerContext = new WorkerContext({
+        fs: this.fs,
+        env: this.env,
+        cwd: this.cwd,
+        timeout: this.timeout,
+      });
     }
-    return this._engine;
+    return this._workerContext;
   }
 
   /**
-   * Evaluate JavaScript code in the sandbox.
+   * Evaluate JavaScript code via WorkerContext.
    */
-  async eval(code: string, filename?: string): Promise<any> {
-    const engine = await this.getEngine();
-    return engine.eval(code, filename);
-  }
-
-  /**
-   * Evaluate async JavaScript code (supports await, fetch, etc.).
-   * Requires an AtuaEngine (not available with custom engine factories).
-   */
-  async evalAsync(code: string, filename?: string): Promise<any> {
-    const engine = await this.getEngine();
-    if (typeof (engine as any).evalAsync !== 'function') {
-      throw new Error('evalAsync requires AtuaEngine (not available with custom engine factory)');
-    }
-    return (engine as any).evalAsync(code, filename);
+  async eval(code: string): Promise<ExecResult> {
+    const ctx = this.getWorkerContext();
+    return ctx.eval(code);
   }
 
   /**
@@ -156,42 +131,15 @@ export class Atua {
   dispose(): void {
     this.hmr.stop();
     this.processes.killAll();
-    this._engine?.destroy().catch(() => {});
-    this._engine = null;
+    this._workerContext?.destroy().catch(() => {});
+    this._workerContext = null;
     this.fs.destroy();
   }
 }
 
-/** Engine type selector for createRuntime */
-export type EngineType = 'quickjs' | 'native';
-
 /**
- * createRuntime — Convenience factory for creating an Atua instance
- * with custom engine and module loader factories.
- *
- * This is the primary entry point for distribution packages that want
- * to wire a specific engine + loader combination.
- *
- * @param config - Atua configuration
- * @param engineType - Engine to use: 'quickjs' (default) or 'native'
+ * createRuntime — Convenience factory for creating an Atua instance.
  */
-export async function createRuntime(
-  config: AtuaConfig = {},
-  engineType: EngineType = 'quickjs',
-): Promise<Atua> {
-  if (engineType === 'native' && !config.engineFactory) {
-    config = {
-      ...config,
-      engineFactory: (cfg: EngineInstanceConfig) => NativeEngine.create({
-        fs: cfg.fs as AtuaFS | undefined,
-        fetchProxy: cfg.net as FetchProxy | undefined,
-        moduleLoader: cfg.moduleLoader,
-        memoryLimit: cfg.memoryLimit,
-        timeout: cfg.timeout,
-        env: cfg.env,
-        cwd: cfg.cwd,
-      }),
-    };
-  }
+export async function createRuntime(config: AtuaConfig = {}): Promise<Atua> {
   return Atua.create(config);
 }

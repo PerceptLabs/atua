@@ -6,25 +6,19 @@
  * Usage:
  *   import { Reaction } from '@aspect/atua-deno';
  *   const runtime = await Reaction.create({ name: 'my-app' });
- *   await runtime.engine.evalFile('/project/server.js');
+ *   await runtime.eval('console.log("hello")');
  */
 
 import { Atua } from '../../../shared/core/src/atua.js';
 import type { AtuaConfig } from '../../../shared/core/src/atua.js';
-import { createDenoEngine } from '../../../engines/deno/src/engine.js';
-import { createDenoNativeLoader } from '../../../engines/deno/src/loaders/deno-native-loader.js';
 
-export interface ReactionConfig extends Omit<AtuaConfig, 'engineFactory' | 'moduleLoaderFactory'> {
+export interface ReactionConfig extends AtuaConfig {
   wasm?: { wasmUrl?: string; cache?: boolean };
 }
 
 export class Reaction {
   static async create(config: ReactionConfig = {}): Promise<Atua> {
-    return Atua.create({
-      ...config,
-      engineFactory: createDenoEngine,
-      moduleLoaderFactory: createDenoNativeLoader,
-    });
+    return Atua.create(config);
   }
 }
 
@@ -39,10 +33,10 @@ export type { DenoEngineConfig, OpsBridgeConfig, OpResult, DenoWasmInstance, Was
 // Re-exports — core runtime
 export { Atua } from '../../../shared/core/src/atua.js';
 
-// Re-exports — tiered engine architecture
+// Re-exports — engine + validation
 export {
-  QuickJSEngine, NativeEngine, NativeModuleLoader, TieredEngine,
-  CodeValidator, checkCode, validateImports, runInSandbox,
+  NativeEngine, NativeModuleLoader,
+  checkCode, validateImports,
   AtuaHTTPServer, createHTTPServer, getHTTPModuleSource,
   AtuaDNS, getDNSModuleSource,
   AtuaTCPSocket, AtuaTCPServer, createConnection, getNetModuleSource,
@@ -53,8 +47,7 @@ export {
   WorkersComplianceGate,
 } from '../../../shared/core/src/index.js';
 export type {
-  NativeEngineConfig, TieredEngineConfig,
-  ValidationResult, ValidatorConfig,
+  NativeEngineConfig,
   RequestHandler, SerializedHTTPRequest, SerializedHTTPResponse,
   DNSConfig, TCPConnectionOptions, TLSConnectionOptions,
   ClusterWorker, ClusterSettings,

@@ -11,7 +11,6 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { NativeEngine } from './NativeEngine.js';
-import { AtuaEngine } from '../../engine/AtuaEngine.js';
 import { AtuaFS } from '../../fs/AtuaFS.js';
 import type { IEngine } from '../../engine/interfaces.js';
 
@@ -239,47 +238,35 @@ describe('NativeEngine', () => {
   });
 });
 
-describe('IEngine contract — QuickJS vs Native', () => {
-  async function runContractTests(name: string, createEngine: () => Promise<IEngine>) {
-    describe(`${name} — IEngine contract`, () => {
-      let engine: IEngine;
+describe('IEngine contract — NativeEngine', () => {
+  let engine: IEngine;
 
-      beforeEach(async () => {
-        engine = await createEngine();
-      });
+  beforeEach(async () => {
+    engine = await NativeEngine.create();
+  });
 
-      afterEach(async () => {
-        await engine.destroy();
-      });
+  afterEach(async () => {
+    await engine.destroy();
+  });
 
-      it('implements eval()', async () => {
-        // Both engines can eval code without throwing
-        await expect(engine.eval('1 + 1')).resolves.not.toThrow();
-      });
+  it('implements eval()', async () => {
+    await expect(engine.eval('1 + 1')).resolves.not.toThrow();
+  });
 
-      it('implements createInstance()', async () => {
-        const child = await engine.createInstance({});
-        expect(child).toBeDefined();
-        await child.destroy();
-      });
+  it('implements createInstance()', async () => {
+    const child = await engine.createInstance({});
+    expect(child).toBeDefined();
+    await child.destroy();
+  });
 
-      it('implements on/off for events', () => {
-        const handler = () => {};
-        engine.on('console', handler);
-        engine.off('console', handler);
-      });
+  it('implements on/off for events', () => {
+    const handler = () => {};
+    engine.on('console', handler);
+    engine.off('console', handler);
+  });
 
-      it('implements destroy()', async () => {
-        await engine.destroy();
-        // Destroying twice should be safe
-        await engine.destroy();
-      });
-    });
-  }
-
-  // Test NativeEngine against the IEngine contract
-  runContractTests('NativeEngine', () => NativeEngine.create());
-
-  // Test QuickJSEngine against the same IEngine contract
-  runContractTests('QuickJSEngine', () => AtuaEngine.create());
+  it('implements destroy()', async () => {
+    await engine.destroy();
+    await engine.destroy();
+  });
 });

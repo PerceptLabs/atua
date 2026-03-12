@@ -1,12 +1,10 @@
 /**
  * ProcessManager — Manages sandboxed child processes
  *
- * Phase 13c: Worker-based isolation with inline fallback.
- *
- * Each child process runs in its own Web Worker with its own QuickJS-WASM
- * instance, providing true thread-level isolation. If Workers are unavailable
- * (sandboxed environments), falls back to inline AtuaEngine on the main
- * thread.
+ * Each child process runs in its own Web Worker with native V8 execution,
+ * providing true thread-level isolation. If Workers are unavailable
+ * (sandboxed environments), falls back to inline execution via
+ * new Function() on the main thread.
  *
  * Features:
  * - exec(): Run code, wait for completion, return stdout/stderr
@@ -17,9 +15,7 @@
  * - StdioBatcher for efficient Worker→main thread stdio
  * - AtuaFS access from Workers via MessagePort proxy
  */
-import { AtuaEngine } from '../engine/AtuaEngine.js';
 import type { AtuaFS } from '../fs/AtuaFS.js';
-import type { EngineFactory } from '../engine/interfaces.js';
 import { AtuaWASI } from '../wasi/AtuaWASI.js';
 import { AtuaProcess, type Signal } from './AtuaProcess.js';
 import { WorkerPool } from './WorkerPool.js';
@@ -45,8 +41,6 @@ export interface ProcessManagerConfig {
   maxWorkers?: number; // default 8 — WorkerPool limit
   /** Force inline mode (skip Worker detection) */
   forceInline?: boolean;
-  /** Factory for creating engine instances — defaults to AtuaEngine.create() */
-  engineFactory?: EngineFactory;
 }
 
 export class ProcessManager {
@@ -57,17 +51,12 @@ export class ProcessManager {
   private maxProcesses: number;
   private pool: WorkerPool;
   private forceInline: boolean;
-  private engineFactory: EngineFactory;
 
   constructor(config: ProcessManagerConfig = {}) {
     this.fs = config.fs;
     this.maxProcesses = config.maxProcesses ?? 32;
     this.forceInline = config.forceInline ?? false;
     this.pool = new WorkerPool({ maxWorkers: config.maxWorkers ?? 8 });
-    this.engineFactory = config.engineFactory ?? ((cfg) => AtuaEngine.create({
-      fs: cfg.fs as AtuaFS | undefined,
-      env: cfg.env,
-    }));
   }
 
   /**
@@ -195,7 +184,7 @@ export class ProcessManager {
       }
     }
 
-    // Fallback: inline AtuaEngine on the main thread
+    // Fallback: inline execution via new Function() on the main thread
     await this.startInlineProcess(proc, code, options);
   }
 
@@ -209,7 +198,7 @@ export class ProcessManager {
     const bridge = new WorkerBridge(handle, this.fs);
     this.bridges.set(proc.pid, bridge);
 
-    // Wait for QuickJS to boot in the Worker
+    // Wait for Worker to boot
     await bridge.waitReady();
 
     if (proc.state === 'killed' || proc.state === 'exited') {
@@ -233,41 +222,120 @@ export class ProcessManager {
     this.bridges.delete(proc.pid);
   }
 
-  /** Start a process inline on the main thread (fallback) */
+  /**
+   * Start a process inline on the main thread (fallback).
+   *
+   * Uses new Function() with a scoped console proxy — no global mutation.
+   * The console proxy routes output to the process's stdout/stderr buffers.
+   */
   private async startInlineProcess(
     proc: AtuaProcess,
     code: string,
     options: ProcessOptions,
   ): Promise<void> {
+    // Check state before starting
+    if (proc.state === 'killed' || proc.state === 'exited') return;
+
+    proc._setState('running');
+
+    // Build scoped console proxy — routes to process stdout/stderr
+    const consoleProxy = {
+      log: (...args: unknown[]) => {
+        const text = args.map(a => typeof a === 'string' ? a : stringifyArg(a)).join(' ') + '\n';
+        proc._pushStdout(text);
+      },
+      info: (...args: unknown[]) => {
+        const text = args.map(a => typeof a === 'string' ? a : stringifyArg(a)).join(' ') + '\n';
+        proc._pushStdout(text);
+      },
+      debug: (...args: unknown[]) => {
+        const text = args.map(a => typeof a === 'string' ? a : stringifyArg(a)).join(' ') + '\n';
+        proc._pushStdout(text);
+      },
+      warn: (...args: unknown[]) => {
+        const text = args.map(a => typeof a === 'string' ? a : stringifyArg(a)).join(' ') + '\n';
+        proc._pushStdout(text);
+      },
+      error: (...args: unknown[]) => {
+        const text = args.map(a => typeof a === 'string' ? a : stringifyArg(a)).join(' ') + '\n';
+        proc._pushStderr(text);
+      },
+      dir: (...args: unknown[]) => {
+        const text = args.map(a => typeof a === 'string' ? a : stringifyArg(a)).join(' ') + '\n';
+        proc._pushStdout(text);
+      },
+      trace: () => {},
+      time: () => {},
+      timeEnd: () => {},
+      clear: () => {},
+      table: (...args: unknown[]) => {
+        const text = args.map(a => typeof a === 'string' ? a : stringifyArg(a)).join(' ') + '\n';
+        proc._pushStdout(text);
+      },
+    };
+
+    // Build scoped process object
+    const processObj = {
+      env: { ...(options.env ?? {}) },
+      cwd: () => options.cwd ?? '/',
+      chdir: () => {},
+      platform: 'browser',
+      arch: 'wasm32',
+      version: 'v22.0.0',
+      versions: { node: '22.0.0' },
+      pid: proc.pid,
+      ppid: 0,
+      argv: ['node'],
+      argv0: 'node',
+      execArgv: [],
+      execPath: '/usr/local/bin/node',
+      title: 'atua',
+      exit: (exitCode: number) => {
+        if (proc.state === 'running') proc._exit(exitCode ?? 0);
+      },
+      nextTick: (fn: (...args: unknown[]) => void, ...args: unknown[]) => {
+        Promise.resolve().then(() => fn(...args));
+      },
+      on: function() { return this; },
+      off: function() { return this; },
+      once: function() { return this; },
+      emit: () => false,
+      removeListener: function() { return this; },
+      removeAllListeners: function() { return this; },
+    };
+
+    // Minimal require stub
+    const requireFn = (name: string) => {
+      const err = new Error(`MODULE_NOT_FOUND: Cannot find module '${name}'`);
+      (err as any).code = 'MODULE_NOT_FOUND';
+      throw err;
+    };
+
     try {
-      const engine = await this.engineFactory({
-        fs: this.fs,
-        env: options.env,
-      });
+      const fn = new Function(
+        'console', 'process', 'require',
+        'module', 'exports',
+        '__filename', '__dirname', 'global',
+        code,
+      );
+      const mod: { exports: unknown } = { exports: {} };
+      fn(
+        consoleProxy,
+        processObj,
+        requireFn,
+        mod, mod.exports,
+        '<process>', '/',
+        typeof globalThis !== 'undefined' ? globalThis : {},
+      );
 
-      // Check again after async engine creation
-      if (proc.state === 'killed' || proc.state === 'exited') {
-        await engine.destroy();
-        return;
-      }
-
-      proc._setEngine(engine);
-
-      // Run the code
-      try {
-        await engine.eval(code);
-        if (proc.state === 'running') {
-          proc._exit(0);
-        }
-      } catch {
-        // Runtime error
-        if (proc.state === 'running') {
-          proc._exit(1);
-        }
+      if (proc.state === 'running') {
+        proc._exit(0);
       }
     } catch {
-      // Engine creation failed
-      proc._exit(1);
+      // Runtime error
+      if (proc.state === 'running') {
+        proc._exit(1);
+      }
     }
   }
 
@@ -332,4 +400,12 @@ export class ProcessManager {
   get workerPool(): WorkerPool {
     return this.pool;
   }
+}
+
+/** Safely stringify an argument for console output */
+function stringifyArg(a: unknown): string {
+  if (a === null) return 'null';
+  if (a === undefined) return 'undefined';
+  try { return JSON.stringify(a); }
+  catch { return String(a); }
 }

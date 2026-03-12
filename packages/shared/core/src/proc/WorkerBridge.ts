@@ -37,7 +37,7 @@ export class WorkerBridge {
       };
     }
 
-    // Wait for Worker to boot QuickJS and signal ready
+    // Wait for Worker to boot and signal ready
     this.readyPromise = new Promise((resolve, reject) => {
       const timeout = setTimeout(
         () => reject(new Error('Worker boot timeout (10s)')),
@@ -57,7 +57,7 @@ export class WorkerBridge {
     });
   }
 
-  /** Wait for the Worker to finish booting QuickJS */
+  /** Wait for the Worker to finish booting */
   async waitReady(): Promise<void> {
     return this.readyPromise;
   }

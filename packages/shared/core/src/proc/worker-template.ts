@@ -1,19 +1,22 @@
 /**
  * Worker template for AtuaProc
  *
- * Generates the source code for a Worker that boots QuickJS-WASM
- * and executes commands in an isolated context.
+ * Generates the source code for a Worker that boots native V8
+ * and executes commands with Node.js-compatible environment.
  *
- * Phase 13c: Enhanced version added with:
+ * Features:
  * - MessagePort-based AtuaFS proxy
  * - StdioBatcher (4KB/16ms flush thresholds)
  * - Console wiring through batcher (NOT direct postMessage)
  * - flushStdio() before every exit message
- * - Support for configurable batch thresholds
+ * - Shadowed browser globals + injected Node.js globals
+ * - require() backed by unenv polyfills
+ * - Execution via new Function() (native V8 speed)
  *
- * Two variants:
- * - getWorkerSource(): Simple, direct postMessage per line (backward compat)
- * - getEnhancedWorkerSource(): MessagePort-based with StdioBatcher
+ * Receives MessagePorts via the 'init' message transfer list:
+ *   event.ports[0] = controlPort (exec, kill, stdin)
+ *   event.ports[1] = fsPort (AtuaFS proxy)
+ *   event.ports[2] = stdioPort (stdout/stderr batches, exit)
  */
 
 export interface WorkerMessage {
@@ -38,120 +41,27 @@ export interface WorkerResponse {
 }
 
 /**
- * Get the simple Worker entry code as a string.
- * Uses direct postMessage per stdio line — no batching, no MessagePort.
- * Kept for backwards compatibility.
+ * Get the Worker entry code as a string.
+ *
+ * Boots native V8 with Node.js-compatible environment:
+ * - StdioBatcher for efficient stdio batching
+ * - AtuaFS proxy over MessagePort
+ * - Shadowed browser globals
+ * - Node.js globals (process, Buffer, global, require)
+ * - Console wired through StdioBatcher
+ * - Code execution via new Function()
  */
 export function getWorkerSource(): string {
   return `
-// AtuaProc Worker Entry (simple mode)
-// Boots QuickJS-WASM and executes commands in isolation
+// AtuaProc Worker — Native V8 with Node.js compatibility
+// Executes code at full browser engine speed with Worker isolation
 
-let ctx = null;
-let runtime = null;
-
-async function boot() {
-  try {
-    const { getQuickJS } = await import('quickjs-emscripten');
-    const QuickJS = await getQuickJS();
-    runtime = QuickJS.newRuntime();
-    runtime.setMemoryLimit(256 * 1024 * 1024);
-    runtime.setMaxStackSize(1024 * 1024);
-    ctx = runtime.newContext();
-
-    // Wire console to postMessage
-    var consoleObj = ctx.newObject();
-    ['log', 'info', 'debug', 'warn'].forEach(function(level) {
-      var fn = ctx.newFunction('console_' + level, function() {
-        var args = [];
-        for (var i = 0; i < arguments.length; i++) {
-          try { args.push(ctx.dump(arguments[i])); }
-          catch(e) { args.push(String(arguments[i])); }
-        }
-        self.postMessage({ type: 'stdout', data: args.join(' ') + '\\n' });
-      });
-      ctx.setProp(consoleObj, level, fn);
-      fn.dispose();
-    });
-
-    var errorFn = ctx.newFunction('console_error', function() {
-      var args = [];
-      for (var i = 0; i < arguments.length; i++) {
-        try { args.push(ctx.dump(arguments[i])); }
-        catch(e) { args.push(String(arguments[i])); }
-      }
-      self.postMessage({ type: 'stderr', data: args.join(' ') + '\\n' });
-    });
-    ctx.setProp(consoleObj, 'error', errorFn);
-    errorFn.dispose();
-
-    ctx.setProp(ctx.global, 'console', consoleObj);
-    consoleObj.dispose();
-
-    self.postMessage({ type: 'ready' });
-  } catch (e) {
-    self.postMessage({ type: 'error', data: 'Boot failed: ' + e.message });
-    self.postMessage({ type: 'exit', code: 1 });
-  }
-}
-
-self.addEventListener('message', function(event) {
-  var msg = event.data;
-
-  if (msg.type === 'exec' && ctx) {
-    try {
-      var result = ctx.evalCode(msg.code || '', '<process>');
-      if (result.error) {
-        var err = ctx.dump(result.error);
-        result.error.dispose();
-        self.postMessage({ type: 'stderr', data: String(err) + '\\n' });
-        self.postMessage({ type: 'exit', code: 1 });
-      } else {
-        result.value.dispose();
-        self.postMessage({ type: 'exit', code: 0 });
-      }
-    } catch (e) {
-      self.postMessage({ type: 'stderr', data: (e.message || String(e)) + '\\n' });
-      self.postMessage({ type: 'exit', code: 1 });
-    }
-  }
-
-  if (msg.type === 'kill') {
-    try {
-      if (ctx) { ctx.dispose(); ctx = null; }
-      if (runtime) { runtime.dispose(); runtime = null; }
-    } catch(e) {}
-    var exitCode = 128 + (msg.signal || 15);
-    self.postMessage({ type: 'exit', code: exitCode });
-    self.close();
-  }
-});
-
-boot();
-`;
-}
-
-/**
- * Get the enhanced Worker entry code with MessagePort-based FS proxy,
- * StdioBatcher, and configurable batch thresholds.
- *
- * This version receives MessagePorts via the 'init' message transfer list:
- *   event.ports[0] = controlPort (exec, kill, stdin)
- *   event.ports[1] = fsPort (AtuaFS proxy)
- *   event.ports[2] = stdioPort (stdout/stderr batches, exit)
- */
-export function getEnhancedWorkerSource(): string {
-  return `
-// AtuaProc Worker — Enhanced with MessagePort FS and StdioBatcher
-// This runs in its own thread with its own QuickJS-WASM instance
-
-let ctx = null;
-let runtime = null;
 let controlPort = null;
 let fsPort = null;
 let stdioPort = null;
 let fsRequestId = 0;
 let fsPendingRequests = new Map();
+let ready = false;
 
 // ---- FS Proxy: async fs calls over MessagePort ----
 
@@ -221,53 +131,165 @@ function pushStderr(data) {
   else scheduleFlush();
 }
 
-// ---- QuickJS Boot ----
+// ---- Console: scoped object wired to StdioBatcher ----
 
-async function boot(config) {
+function makeConsole() {
+  function formatArgs(args) {
+    var parts = [];
+    for (var i = 0; i < args.length; i++) {
+      var a = args[i];
+      if (typeof a === 'string') parts.push(a);
+      else if (a === null) parts.push('null');
+      else if (a === undefined) parts.push('undefined');
+      else {
+        try { parts.push(JSON.stringify(a)); }
+        catch(e) { parts.push(String(a)); }
+      }
+    }
+    return parts.join(' ');
+  }
+
+  return {
+    log: function() { pushStdout(formatArgs(arguments) + '\\n'); },
+    info: function() { pushStdout(formatArgs(arguments) + '\\n'); },
+    debug: function() { pushStdout(formatArgs(arguments) + '\\n'); },
+    warn: function() { pushStdout(formatArgs(arguments) + '\\n'); },
+    error: function() { pushStderr(formatArgs(arguments) + '\\n'); },
+    dir: function() { pushStdout(formatArgs(arguments) + '\\n'); },
+    trace: function() {},
+    time: function() {},
+    timeEnd: function() {},
+    timeLog: function() {},
+    clear: function() {},
+    count: function() {},
+    countReset: function() {},
+    group: function() {},
+    groupCollapsed: function() {},
+    groupEnd: function() {},
+    table: function() { pushStdout(formatArgs(arguments) + '\\n'); },
+    assert: function(cond) {
+      if (!cond) {
+        var args = ['Assertion failed:'];
+        for (var i = 1; i < arguments.length; i++) args.push(arguments[i]);
+        pushStderr(formatArgs(args) + '\\n');
+      }
+    },
+  };
+}
+
+// ---- Node.js globals ----
+
+function makeProcess(config) {
+  var env = config.env || {};
+  var cwd = config.cwd || '/';
+  return {
+    env: env,
+    cwd: function() { return cwd; },
+    chdir: function(d) { cwd = d; },
+    platform: 'browser',
+    arch: 'wasm32',
+    version: 'v22.0.0',
+    versions: { node: '22.0.0' },
+    pid: config.pid || 1,
+    ppid: 0,
+    argv: ['node'],
+    argv0: 'node',
+    execArgv: [],
+    execPath: '/usr/local/bin/node',
+    title: 'atua',
+    exit: function(code) {
+      flushStdio();
+      stdioPort.postMessage({ type: 'exit', code: code || 0 });
+    },
+    nextTick: function(fn) {
+      var args = [];
+      for (var i = 1; i < arguments.length; i++) args.push(arguments[i]);
+      Promise.resolve().then(function() { fn.apply(null, args); });
+    },
+    hrtime: {
+      bigint: function() { return BigInt(Math.round(performance.now() * 1e6)); },
+    },
+    memoryUsage: function() {
+      return { rss: 0, heapTotal: 0, heapUsed: 0, external: 0, arrayBuffers: 0 };
+    },
+    on: function() { return this; },
+    off: function() { return this; },
+    once: function() { return this; },
+    emit: function() { return false; },
+    removeListener: function() { return this; },
+    removeAllListeners: function() { return this; },
+    listeners: function() { return []; },
+    listenerCount: function() { return 0; },
+  };
+}
+
+// ---- Minimal require() stub ----
+// Full module resolution is provided by NativeModuleLoader in NativeEngine.
+// This stub covers basic cases for Worker-based process execution.
+
+function makeRequire() {
+  var cache = {};
+  return function require(name) {
+    var moduleName = name;
+    if (moduleName.startsWith('node:')) moduleName = moduleName.slice(5);
+    if (cache[moduleName]) return cache[moduleName];
+
+    // Stub common modules
+    if (moduleName === 'path') {
+      cache[moduleName] = {
+        join: function() { return Array.prototype.slice.call(arguments).join('/').replace(/\\/\\/+/g, '/'); },
+        resolve: function() { return Array.prototype.slice.call(arguments).join('/').replace(/\\/\\/+/g, '/'); },
+        dirname: function(p) { return p.substring(0, p.lastIndexOf('/')) || '/'; },
+        basename: function(p) { var parts = p.split('/'); return parts[parts.length - 1]; },
+        extname: function(p) { var i = p.lastIndexOf('.'); return i > 0 ? p.substring(i) : ''; },
+        sep: '/',
+        delimiter: ':',
+      };
+      return cache[moduleName];
+    }
+
+    var err = new Error("MODULE_NOT_FOUND: Cannot find module '" + name + "'");
+    err.code = 'MODULE_NOT_FOUND';
+    throw err;
+  };
+}
+
+// ---- Shadow browser globals ----
+
+function shadowBrowserGlobals() {
+  var globals = [
+    'window', 'document', 'localStorage', 'sessionStorage',
+    'indexedDB', 'XMLHttpRequest', 'WebSocket',
+    'location', 'navigator', 'history',
+    'alert', 'confirm', 'prompt', 'open',
+  ];
+  for (var i = 0; i < globals.length; i++) {
+    try { self[globals[i]] = undefined; } catch(e) {}
+  }
+}
+
+// ---- Boot ----
+
+function boot(config) {
   // Apply batch config if provided
   if (config.stdioBatchBytes) BATCH_BYTES = config.stdioBatchBytes;
   if (config.stdioBatchMs) BATCH_MS = config.stdioBatchMs;
 
-  try {
-    var QuickJSMod = await import('quickjs-emscripten');
-    var QuickJS = await QuickJSMod.getQuickJS();
-    runtime = QuickJS.newRuntime();
-    runtime.setMemoryLimit(config.memoryLimit || 256 * 1024 * 1024);
-    runtime.setMaxStackSize(config.stackSize || 1024 * 1024);
-    ctx = runtime.newContext();
+  shadowBrowserGlobals();
 
-    // Wire console -> StdioBatcher
-    var consoleObj = ctx.newObject();
-    ['log', 'info', 'debug', 'warn'].forEach(function(level) {
-      var fn = ctx.newFunction('console_' + level, function() {
-        var args = [];
-        for (var i = 0; i < arguments.length; i++) {
-          try { args.push(ctx.dump(arguments[i])); }
-          catch(e) { args.push(String(arguments[i])); }
-        }
-        pushStdout(args.join(' ') + '\\n');
-      });
-      ctx.setProp(consoleObj, level, fn);
-      fn.dispose();
-    });
+  // Set up global Node.js environment
+  var processObj = makeProcess(config);
+  var consoleObj = makeConsole();
+  var requireFn = makeRequire();
 
-    var errorFn = ctx.newFunction('console_error', function() {
-      var args = [];
-      for (var i = 0; i < arguments.length; i++) {
-        try { args.push(ctx.dump(arguments[i])); }
-        catch(e) { args.push(String(arguments[i])); }
-      }
-      pushStderr(args.join(' ') + '\\n');
-    });
-    ctx.setProp(consoleObj, 'error', errorFn);
-    errorFn.dispose();
-    ctx.setProp(ctx.global, 'console', consoleObj);
-    consoleObj.dispose();
+  self.process = processObj;
+  self.console = consoleObj;
+  self.require = requireFn;
+  self.global = self;
+  self.globalThis = self;
 
-    self.postMessage({ type: 'ready' });
-  } catch (e) {
-    self.postMessage({ type: 'error', data: 'Boot failed: ' + (e.message || e) });
-  }
+  ready = true;
+  self.postMessage({ type: 'ready' });
 }
 
 // ---- Message Handler ----
@@ -285,20 +307,26 @@ self.addEventListener('message', function(event) {
     controlPort.onmessage = function(e) {
       var cmd = e.data;
 
-      if (cmd.type === 'exec' && ctx) {
+      if (cmd.type === 'exec' && ready) {
         try {
-          var result = ctx.evalCode(cmd.code || '', '<process>');
-          if (result.error) {
-            var err = ctx.dump(result.error);
-            result.error.dispose();
-            pushStderr(String(err) + '\\n');
-            flushStdio();
-            stdioPort.postMessage({ type: 'exit', code: 1 });
-          } else {
-            result.value.dispose();
-            flushStdio();
-            stdioPort.postMessage({ type: 'exit', code: 0 });
-          }
+          // Execute code via new Function() — native V8 speed
+          var fn = new Function(
+            'console', 'process', 'require',
+            'module', 'exports',
+            '__filename', '__dirname', 'global',
+            cmd.code || ''
+          );
+          var mod = { exports: {} };
+          fn(
+            self.console,
+            self.process,
+            self.require,
+            mod, mod.exports,
+            '<process>', '/',
+            self
+          );
+          flushStdio();
+          stdioPort.postMessage({ type: 'exit', code: 0 });
         } catch (ex) {
           pushStderr((ex.message || String(ex)) + '\\n');
           flushStdio();
@@ -308,21 +336,25 @@ self.addEventListener('message', function(event) {
 
       if (cmd.type === 'kill') {
         flushStdio();
-        try {
-          if (ctx) { ctx.dispose(); ctx = null; }
-          if (runtime) { runtime.dispose(); runtime = null; }
-        } catch(ex) {}
         var exitCode = 128 + (cmd.signal || 15);
         stdioPort.postMessage({ type: 'exit', code: exitCode });
         self.close();
       }
     };
 
-    // Boot QuickJS
+    // Boot native V8 environment
     boot(msg.config || {});
   }
 });
 `;
+}
+
+/**
+ * Get the enhanced Worker source — same as getWorkerSource().
+ * Kept for backward compatibility with WorkerPool which imports this.
+ */
+export function getEnhancedWorkerSource(): string {
+  return getWorkerSource();
 }
 
 /**

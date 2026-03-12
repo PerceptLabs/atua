@@ -44,19 +44,20 @@ describe('Reaction — Factory', () => {
   });
 });
 
-describe('Reaction — Engine Integration', () => {
-  it('getEngine returns IEngine', async () => {
+describe('Reaction — Execution', () => {
+  it('getWorkerContext returns ExecutionContext', async () => {
     instance = await Reaction.create({ name: `reaction-eng-${Date.now()}` });
-    const engine = await instance.getEngine();
-    expect(engine).toBeDefined();
-    expect(typeof engine.eval).toBe('function');
-    expect(typeof engine.destroy).toBe('function');
+    const ctx = instance.getWorkerContext();
+    expect(ctx).toBeDefined();
+    expect(typeof ctx.eval).toBe('function');
+    expect(typeof ctx.destroy).toBe('function');
   });
 
   it('eval works through Reaction', async () => {
     instance = await Reaction.create({ name: `reaction-eval-${Date.now()}` });
-    const result = await instance.eval('42');
-    expect(result).toBe(42);
+    const result = await instance.eval('console.log("hello")');
+    expect(result).toBeDefined();
+    expect(result.stdout).toContain('hello');
   });
 });
 

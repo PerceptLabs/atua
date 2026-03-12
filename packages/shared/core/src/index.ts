@@ -4,6 +4,8 @@
 export const VERSION = '0.0.1';
 
 export { AtuaFS } from './fs/index.js';
+
+// Legacy engine exports — kept for backward compatibility
 export { AtuaEngine } from './engine/index.js';
 export type { EngineConfig, ConsoleLevel } from './engine/index.js';
 export { NodeCompatLoader } from './engine/index.js';
@@ -19,13 +21,26 @@ export type {
   ModuleLoaderConfig,
 } from './engine/index.js';
 
-// Engines — new tiered engine architecture
-export { QuickJSEngine } from './engines/index.js';
+// Engines
 export { NativeEngine } from './engines/index.js';
 export type { NativeEngineConfig } from './engines/index.js';
 export { NativeModuleLoader } from './engines/index.js';
-export { TieredEngine } from './engines/index.js';
-export type { TieredEngineConfig } from './engines/index.js';
+
+// Execution context model — replaces IEngine + TieredEngine
+export type {
+  ExecutionContext,
+  EvalOpts,
+  SpawnOpts,
+  ExecResult as ExecContextResult,
+  ProcessResult as ProcessContextResult,
+  ContextStatus,
+} from './execution/index.js';
+export { InlineContext } from './execution/index.js';
+export { WorkerContext } from './execution/index.js';
+export type { WorkerContextConfig } from './execution/index.js';
+export { ContextRouter } from './execution/index.js';
+export type { ExecRequest, ContextRouterConfig } from './execution/index.js';
+
 export { FetchProxy } from './net/index.js';
 export type { FetchProxyConfig, SerializedRequest, SerializedResponse } from './net/index.js';
 export { ProcessManager, AtuaProcess } from './proc/index.js';
@@ -54,13 +69,14 @@ export { ConflictResolver, } from './sync/index.js';
 export type { ConflictInfo, ConflictResolution, ConflictStrategy } from './sync/index.js';
 export { PROTOCOL_VERSION, generateOpId } from './sync/index.js';
 export type { FileOperation, SyncMessage, ConnectionState, SyncResult } from './sync/index.js';
-// Validation — Tier 0 security gate
-export { CodeValidator, checkCode, validateImports, runInSandbox } from './validation/index.js';
+
+// Validation — static analysis + AST + import checking
+export { analyzeCode } from './validation/index.js';
+export type { AnalysisResult } from './validation/index.js';
+export { checkCode, validateImports } from './validation/index.js';
 export type {
-  ValidationResult, ValidatorConfig,
   ASTCheckResult, ASTViolation,
   ImportValidationResult, BlockedImport,
-  SandboxRunResult, SandboxRunConfig,
 } from './validation/index.js';
 
 // Net — HTTP, DNS, TCP, TLS
@@ -89,5 +105,4 @@ export { WorkersComplianceGate } from './compat/index.js';
 export type { ComplianceResult, ComplianceError, ComplianceWarning } from './compat/index.js';
 
 export { Atua, createRuntime } from './atua.js';
-export type { AtuaConfig, EngineType } from './atua.js';
-
+export type { AtuaConfig } from './atua.js';

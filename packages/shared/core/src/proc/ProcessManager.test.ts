@@ -226,7 +226,6 @@ describe('Worker Template', () => {
     const source = getWorkerSource();
     expect(typeof source).toBe('string');
     expect(source.length).toBeGreaterThan(100);
-    expect(source).toContain('quickjs-emscripten');
     expect(source).toContain('self.postMessage');
     expect(source).toContain('self.addEventListener');
   });
@@ -235,7 +234,6 @@ describe('Worker Template', () => {
     const source = getEnhancedWorkerSource();
     expect(typeof source).toBe('string');
     expect(source.length).toBeGreaterThan(100);
-    expect(source).toContain('quickjs-emscripten');
     expect(source).toContain('stdioPort');
     expect(source).toContain('controlPort');
     expect(source).toContain('fsPort');
