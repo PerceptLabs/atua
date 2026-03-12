@@ -14,6 +14,13 @@ export { TransactionLog } from './hub/transaction-log.js';
 export { MessageChannelTransport } from './transports/message-channel.js';
 export type { ToolHandler } from './transports/message-channel.js';
 
+// Providers
+export { createProvider } from './providers/base-provider.js';
+export type { ProviderConfig, ProviderHandler } from './providers/base-provider.js';
+export { createAtuaFsProvider } from './providers/atua-fs-provider.js';
+export { createAtuaD1Provider } from './providers/atua-d1-provider.js';
+export { createAtuaBuildProvider } from './providers/atua-build-provider.js';
+
 // Types
 export type {
   ToolDefinition,
