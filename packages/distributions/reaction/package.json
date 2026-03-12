@@ -1,0 +1,15 @@
+{
+  "name": "@aspect/reaction",
+  "version": "0.0.1",
+  "description": "Reaction — Full-mode browser runtime with Deno-in-WASM, V8 jitless, 100% Node compat",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0"
+  }
+}

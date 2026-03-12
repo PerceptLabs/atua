@@ -1,0 +1,28 @@
+{
+  "name": "catalyst",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "vitest run",
+    "test:browser": "vitest run --config vitest.browser.config.ts",
+    "test:all": "pnpm test && pnpm test:browser",
+    "test:watch": "vitest --config vitest.browser.config.ts"
+  },
+  "devDependencies": {
+    "@vitest/browser": "^3.2.0",
+    "esbuild-wasm": "^0.27.3",
+    "playwright": "1.56.1",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "onlyBuiltDependencies": [
+    "esbuild"
+  ]
+}

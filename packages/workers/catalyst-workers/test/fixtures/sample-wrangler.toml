@@ -1,0 +1,19 @@
+name = "my-worker"
+main = "src/worker.ts"
+
+[vars]
+API_KEY = "my-secret-key"
+ENVIRONMENT = "development"
+
+[[kv_namespaces]]
+binding = "MY_KV"
+id = "abc123"
+
+[[d1_databases]]
+binding = "MY_DB"
+database_name = "my-database"
+database_id = "def456"
+
+[[r2_buckets]]
+binding = "MY_BUCKET"
+bucket_name = "my-bucket"

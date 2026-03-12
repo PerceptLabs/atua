@@ -1,0 +1,12 @@
+{
+  "name": "@aspect/catalyst-compliance",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "echo 'Compliance tests run via root vitest'"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

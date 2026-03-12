@@ -1,0 +1,14 @@
+name = "raw-worker"
+main = "index.js"
+
+[vars]
+APP_NAME = "Raw Worker"
+
+[[kv_namespaces]]
+binding = "MY_KV"
+id = "raw-kv-001"
+
+[[d1_databases]]
+binding = "MY_DB"
+database_name = "raw-db"
+database_id = "raw-db-001"

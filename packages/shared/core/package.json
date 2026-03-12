@@ -1,0 +1,27 @@
+{
+  "name": "@aspect/catalyst-core",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts"
+  },
+  "dependencies": {
+    "@zenfs/core": "^2.5.0",
+    "@zenfs/dom": "^1.2.0",
+    "hono": "^4.12.3",
+    "quickjs-emscripten": "^0.32.0",
+    "unenv": "^1.10.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0"
+  }
+}
