@@ -75,7 +75,7 @@ export class AtuaFS {
 
     // Unmount all existing mounts to avoid conflicts (ZenFS global state)
     try {
-      const { mounts, umount } = zenfs;
+      const { mounts, umount } = zenfs as any;
       for (const mountPoint of [...mounts.keys()]) {
         try {
           umount(mountPoint);

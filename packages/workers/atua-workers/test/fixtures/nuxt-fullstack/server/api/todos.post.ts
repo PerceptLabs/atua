@@ -1,3 +1,4 @@
+/// <reference path="../../../nitro-shims.d.ts" />
 // POST /api/todos — create a new todo in D1
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);

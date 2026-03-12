@@ -37,7 +37,7 @@ describe('Astro Full-Stack — SSR with D1', () => {
           const url = new URL(request.url);
 
           if (url.pathname === '/') {
-            const result = await env.MY_DB.prepare('SELECT * FROM posts').all();
+            const result = await (env.MY_DB as AtuaD1).prepare('SELECT * FROM posts').all();
             const posts = result.results as Array<{ id: number; title: string }>;
             const postList = posts.map((p) => `<li>${p.title}</li>`).join('');
             return new Response(
@@ -47,7 +47,7 @@ describe('Astro Full-Stack — SSR with D1', () => {
           }
 
           if (url.pathname === '/api/posts') {
-            const result = await env.MY_DB.prepare('SELECT * FROM posts ORDER BY id').all();
+            const result = await (env.MY_DB as AtuaD1).prepare('SELECT * FROM posts ORDER BY id').all();
             return new Response(JSON.stringify(result.results), {
               headers: { 'Content-Type': 'application/json' },
             });
@@ -92,7 +92,7 @@ describe('Astro Full-Stack — SSR with D1', () => {
         async fetch(request, env) {
           const url = new URL(request.url);
           if (url.pathname === '/api/posts') {
-            const result = await env.MY_DB.prepare('SELECT * FROM posts ORDER BY id').all();
+            const result = await (env.MY_DB as AtuaD1).prepare('SELECT * FROM posts ORDER BY id').all();
             return new Response(JSON.stringify(result.results), {
               headers: { 'Content-Type': 'application/json' },
             });

@@ -1,3 +1,4 @@
+/// <reference path="../../../nitro-shims.d.ts" />
 // POST /api/upload — upload file to R2
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);

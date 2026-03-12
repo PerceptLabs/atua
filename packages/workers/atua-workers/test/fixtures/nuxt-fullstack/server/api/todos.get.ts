@@ -1,3 +1,4 @@
+/// <reference path="../../../nitro-shims.d.ts" />
 // GET /api/todos — list all todos from D1
 export default defineEventHandler(async (event) => {
   const db = event.context.atua.env.MY_DB;

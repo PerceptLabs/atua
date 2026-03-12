@@ -19,6 +19,7 @@
  *   const value = await storage.getItem('key');
  */
 import { AtuaKV } from '@aspect/atua-workers';
+import type { KVListKey } from '@aspect/atua-workers';
 
 /** Options for the AtuaKV storage driver */
 export interface AtuaKVDriverOptions {
@@ -82,12 +83,12 @@ export function atuaKVDriver(
 
     async getKeys(base?: string): Promise<string[]> {
       const result = await getKV().list({ prefix: base ?? '' });
-      return result.keys.map((k) => k.name);
+      return result.keys.map((k: KVListKey) => k.name);
     },
 
     async clear(base?: string): Promise<void> {
       const result = await getKV().list({ prefix: base ?? '' });
-      for (const k of result.keys) {
+      for (const k of result.keys as KVListKey[]) {
         await getKV().delete(k.name);
       }
     },

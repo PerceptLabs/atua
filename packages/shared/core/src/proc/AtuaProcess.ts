@@ -55,8 +55,8 @@ export class AtuaProcess {
     this._state = 'running';
 
     // Wire console events to stdout/stderr
-    engine.on('console', (level: string, ...args: any[]) => {
-      const text = args.map((a) => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ') + '\n';
+    engine.on('console', (level: unknown, ...args: unknown[]) => {
+      const text = args.map((a: unknown) => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ') + '\n';
       if (level === 'error') {
         this._stderrChunks.push(text);
         this._emit('stderr', text);

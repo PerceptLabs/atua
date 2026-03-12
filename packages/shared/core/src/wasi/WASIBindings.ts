@@ -421,7 +421,7 @@ export class WASIBindings {
         const bytes =
           typeof content === 'string'
             ? new TextEncoder().encode(content)
-            : new Uint8Array(content as ArrayBuffer);
+            : content instanceof Uint8Array ? content : new Uint8Array(content as ArrayBuffer);
 
         for (let i = 0; i < iovsLen; i++) {
           const bufPtr = view.getUint32(iovsPtr + i * 8, true);
@@ -479,13 +479,13 @@ export class WASIBindings {
         try {
           // For file writes, we append data at current offset
           // Simple approach: read current content, splice, write back
-          let existing = new Uint8Array(0);
+          let existing = new Uint8Array(0) as Uint8Array;
           try {
             const content = this.fs.readFileSync(desc.path);
             existing =
               typeof content === 'string'
                 ? new TextEncoder().encode(content)
-                : new Uint8Array(content as ArrayBuffer);
+                : content instanceof Uint8Array ? new Uint8Array(content.buffer) : new Uint8Array(content as ArrayBuffer);
           } catch {
             // File might not exist yet
           }
@@ -609,7 +609,7 @@ export class WASIBindings {
         // d_namlen
         view.setUint32(bufPtr + offset + 16, encoded.length, true);
         // d_type
-        let ftype = WASI_FILETYPE.REGULAR_FILE;
+        let ftype: (typeof WASI_FILETYPE)[keyof typeof WASI_FILETYPE] = WASI_FILETYPE.REGULAR_FILE;
         try {
           const st = this.fs.statSync(
             desc.path + '/' + name,

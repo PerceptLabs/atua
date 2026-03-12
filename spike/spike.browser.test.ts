@@ -202,7 +202,7 @@ describe('QuickJS-WASM — JS Engine', () => {
 
     // Create a host function
     const logs: string[] = [];
-    const logFn = context.newFunction('hostLog', (msgHandle) => {
+    const logFn = context.newFunction('hostLog', (msgHandle: any) => {
       logs.push(context.getString(msgHandle));
     });
 

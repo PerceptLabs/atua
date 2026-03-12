@@ -8,7 +8,7 @@ import { AtuaFS } from '../fs/AtuaFS.js';
 
 async function createRunner(config: ConstructorParameters<typeof NpmProcessRunner>[2] = {}) {
   const fs = await AtuaFS.create('npm-runner-test');
-  const pm = new ProcessManager(fs);
+  const pm = new ProcessManager({ fs });
   return { runner: new NpmProcessRunner(pm, fs, config), fs, pm };
 }
 

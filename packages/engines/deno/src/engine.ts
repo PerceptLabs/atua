@@ -77,8 +77,7 @@ export class DenoEngine implements IEngine {
 
   async evalFile(path: string): Promise<unknown> {
     this.checkDestroyed();
-    const result = this.opsBridge.dispatch('op_read_file_sync', path);
-    if ('then' in (result as any)) throw new Error('Unexpected async from op_read_file_sync');
+    const result = await this.opsBridge.dispatch('op_read_file_sync', path);
     if (!result.ok) throw new Error(`Failed to read file ${path}: ${result.error}`);
     return this.eval(String(result.value), path);
   }

@@ -9,7 +9,7 @@ import { AtuaFS } from '../fs/AtuaFS.js';
 describe('AtuaCluster', () => {
   async function createCluster(exec?: string) {
     const fs = await AtuaFS.create('cluster-test');
-    const pm = new ProcessManager(fs);
+    const pm = new ProcessManager({ fs });
     return { cluster: new AtuaCluster(pm, { exec }), pm, fs };
   }
 

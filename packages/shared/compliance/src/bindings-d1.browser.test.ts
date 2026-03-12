@@ -37,7 +37,7 @@ describe('Workers Compliance — D1 Binding', () => {
           const url = new URL(request.url);
 
           if (url.pathname === '/shape') {
-            const d1 = env.DB;
+            const d1 = env.DB as AtuaD1;
             const stmt = d1.prepare('SELECT * FROM items');
             return new Response(JSON.stringify({
               hasPrepare: typeof d1.prepare === 'function',
@@ -52,17 +52,17 @@ describe('Workers Compliance — D1 Binding', () => {
           }
 
           if (url.pathname === '/insert') {
-            await env.DB.prepare('INSERT INTO items (value) VALUES (?)').bind('test-item').run();
+            await (env.DB as AtuaD1).prepare('INSERT INTO items (value) VALUES (?)').bind('test-item').run();
             return new Response('inserted');
           }
 
           if (url.pathname === '/query') {
-            const result = await env.DB.prepare('SELECT * FROM items').all();
+            const result = await (env.DB as AtuaD1).prepare('SELECT * FROM items').all();
             return new Response(JSON.stringify(result.results));
           }
 
           if (url.pathname === '/first') {
-            const row = await env.DB.prepare('SELECT * FROM items LIMIT 1').first();
+            const row = await (env.DB as AtuaD1).prepare('SELECT * FROM items LIMIT 1').first();
             return new Response(JSON.stringify(row));
           }
 
@@ -117,12 +117,12 @@ describe('Workers Compliance — D1 Binding', () => {
     const worker: WorkerModule = {
       default: {
         async fetch(request, env) {
-          await env.DB.exec(`
+          await (env.DB as AtuaD1).exec(`
             CREATE TABLE IF NOT EXISTS multi (id INTEGER PRIMARY KEY, val TEXT);
             INSERT INTO multi (val) VALUES ('a');
             INSERT INTO multi (val) VALUES ('b');
           `);
-          const result = await env.DB.prepare('SELECT * FROM multi ORDER BY id').all();
+          const result = await (env.DB as AtuaD1).prepare('SELECT * FROM multi ORDER BY id').all();
           return new Response(JSON.stringify(result.results));
         },
       },

@@ -68,7 +68,7 @@ export class BinaryCache {
 
   /** Compute SHA-256 hash of binary data */
   async computeHash(data: Uint8Array): Promise<string> {
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data.buffer as ArrayBuffer);
     const hashArray = new Uint8Array(hashBuffer);
     return Array.from(hashArray)
       .map((b) => b.toString(16).padStart(2, '0'))
@@ -105,7 +105,7 @@ export class BinaryCache {
       if (typeof content === 'string') {
         return new TextEncoder().encode(content);
       }
-      return new Uint8Array(content as ArrayBuffer);
+      return content instanceof Uint8Array ? content : new Uint8Array(content as ArrayBuffer);
     } catch {
       // File was deleted — remove from cache
       this.entries.delete(hash);

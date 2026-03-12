@@ -42,13 +42,14 @@ export class OpsBridge {
     this.registerAll();
   }
 
-  dispatch(opName: string, ...args: unknown[]): OpResult | Promise<OpResult> {
+  dispatch(opName: string, ...args: unknown[]): Promise<OpResult> {
     const handler = this.ops.get(opName);
-    if (!handler) return { ok: false, error: `Unknown op: ${opName}` };
+    if (!handler) return Promise.resolve({ ok: false, error: `Unknown op: ${opName}` });
     try {
-      return handler(...args);
+      const result = handler(...args);
+      return result instanceof Promise ? result : Promise.resolve(result);
     } catch (err) {
-      return { ok: false, error: String(err) };
+      return Promise.resolve({ ok: false, error: String(err) });
     }
   }
 

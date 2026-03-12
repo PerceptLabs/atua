@@ -3,11 +3,11 @@
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "src/index.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./src/index.ts",
+      "import": "./dist/index.js"
     }
   },
   "scripts": {
@@ -24,7 +24,11 @@
     "unenv": "^1.10.0"
   },
   "devDependencies": {
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/addon-web-links": "^0.12.0",
+    "@xterm/addon-webgl": "^0.19.0",
     "tsup": "^8.0.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "xterm": "^5.3.0"
   }
 }

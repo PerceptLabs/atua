@@ -167,7 +167,13 @@ export class AtuaTCPSocket implements TCPSocket {
     this._handlers.clear();
   }
 
-  on(event: string, handler: EventHandler): void {
+  on(event: 'data', handler: (data: Uint8Array) => void): void;
+  on(event: 'connect', handler: () => void): void;
+  on(event: 'close', handler: (hadError: boolean) => void): void;
+  on(event: 'error', handler: (err: Error) => void): void;
+  on(event: 'end', handler: () => void): void;
+  on(event: string, handler: (...args: unknown[]) => void): void;
+  on(event: string, handler: (...args: any[]) => void): void {
     if (!this._handlers.has(event)) this._handlers.set(event, []);
     this._handlers.get(event)!.push(handler);
   }

@@ -32,7 +32,7 @@ export class AtuaKV {
   private readonly dbName: string;
   private db: IDBDatabase | null = null;
 
-  constructor(namespace: string) {
+  constructor(namespace: string = 'default') {
     this.dbName = `atua-kv-${namespace}`;
   }
 

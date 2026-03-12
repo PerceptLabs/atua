@@ -75,7 +75,7 @@ export class AtuaWASI {
     const imports = bindings.getImports();
 
     try {
-      const module = await WebAssembly.compile(wasmBinary);
+      const module = await WebAssembly.compile(wasmBinary.buffer as ArrayBuffer);
       const instance = await WebAssembly.instantiate(module, imports);
 
       // Set memory reference
@@ -146,7 +146,7 @@ export class AtuaWASI {
       // Shouldn't normally be string for .wasm files
       binary = new TextEncoder().encode(content);
     } else {
-      binary = new Uint8Array(content as ArrayBuffer);
+      binary = content instanceof Uint8Array ? content : new Uint8Array(content as ArrayBuffer);
     }
 
     // Set default args to include the filename

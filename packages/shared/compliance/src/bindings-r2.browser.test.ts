@@ -6,6 +6,7 @@
  */
 import { describe, it, expect, afterEach } from 'vitest';
 import { AtuaWorkers } from '../../../workers/atua-workers/src/runtime.js';
+import { AtuaR2 } from '../../../workers/atua-workers/src/bindings/r2.js';
 import type { WorkerModule } from '../../../workers/atua-workers/src/runtime.js';
 
 let runtime: AtuaWorkers | null = null;
@@ -26,7 +27,7 @@ describe('Workers Compliance — R2 Binding', () => {
     const worker: WorkerModule = {
       default: {
         async fetch(request, env) {
-          const r2 = env.MY_BUCKET;
+          const r2 = env.MY_BUCKET as AtuaR2;
           return new Response(JSON.stringify({
             hasGet: typeof r2.get === 'function',
             hasPut: typeof r2.put === 'function',
@@ -64,12 +65,12 @@ describe('Workers Compliance — R2 Binding', () => {
           const url = new URL(request.url);
 
           if (url.pathname === '/put') {
-            await env.MY_BUCKET.put('test-file.txt', 'hello R2');
+            await (env.MY_BUCKET as AtuaR2).put('test-file.txt', 'hello R2');
             return new Response('stored');
           }
 
           if (url.pathname === '/get') {
-            const obj = await env.MY_BUCKET.get('test-file.txt');
+            const obj = await (env.MY_BUCKET as AtuaR2).get('test-file.txt');
             if (!obj) return new Response('not found', { status: 404 });
             const text = await obj.text();
             return new Response(JSON.stringify({ text }));
@@ -100,9 +101,9 @@ describe('Workers Compliance — R2 Binding', () => {
     const worker: WorkerModule = {
       default: {
         async fetch(request, env) {
-          await env.MY_BUCKET.put('to-delete', 'data');
-          await env.MY_BUCKET.delete('to-delete');
-          const obj = await env.MY_BUCKET.get('to-delete');
+          await (env.MY_BUCKET as AtuaR2).put('to-delete', 'data');
+          await (env.MY_BUCKET as AtuaR2).delete('to-delete');
+          const obj = await (env.MY_BUCKET as AtuaR2).get('to-delete');
           return new Response(JSON.stringify({ exists: obj !== null }));
         },
       },
@@ -127,9 +128,9 @@ describe('Workers Compliance — R2 Binding', () => {
     const worker: WorkerModule = {
       default: {
         async fetch(request, env) {
-          await env.MY_BUCKET.put('file-a', 'data-a');
-          await env.MY_BUCKET.put('file-b', 'data-b');
-          const result = await env.MY_BUCKET.list();
+          await (env.MY_BUCKET as AtuaR2).put('file-a', 'data-a');
+          await (env.MY_BUCKET as AtuaR2).put('file-b', 'data-b');
+          const result = await (env.MY_BUCKET as AtuaR2).list();
           return new Response(JSON.stringify({
             keys: result.objects.map((o: any) => o.key),
             truncated: result.truncated,

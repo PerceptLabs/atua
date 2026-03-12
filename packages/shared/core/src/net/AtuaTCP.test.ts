@@ -16,7 +16,7 @@ describe('AtuaTCP', () => {
     it('emits error when no relay configured', () => {
       const socket = new AtuaTCPSocket({ host: 'db.example.com', port: 5432 });
       const errors: Error[] = [];
-      socket.on('error', (err: Error) => errors.push(err));
+      socket.on('error', (err: unknown) => errors.push(err as Error));
       socket.connect();
       expect(errors.length).toBe(1);
       expect(errors[0].message).toContain('requires a WebSocket relay');

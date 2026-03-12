@@ -1,3 +1,4 @@
+/// <reference path="../../nitro-shims.d.ts" />
 /**
  * GET / → HTML page
  */

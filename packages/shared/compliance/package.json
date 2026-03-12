@@ -6,6 +6,10 @@
   "scripts": {
     "test": "echo 'Compliance tests run via root vitest'"
   },
+  "dependencies": {
+    "@aspect/atua-workers": "workspace:*",
+    "@aspect/atua-workers-d1": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "^5.7.0"
   }

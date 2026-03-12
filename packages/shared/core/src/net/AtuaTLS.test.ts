@@ -71,7 +71,7 @@ describe('AtuaTLS', () => {
       const module = { exports: {} as any };
       // TLS module requires net
       const netModule = {
-        Socket: function() {
+        Socket: function(this: any) {
           this._events = {};
           this.remoteAddress = '127.0.0.1';
           this.remotePort = 0;

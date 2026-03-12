@@ -29,7 +29,7 @@ describe('Workers Compliance — KV Binding', () => {
     const worker: WorkerModule = {
       default: {
         async fetch(request, env) {
-          const kvNs = env.MY_KV;
+          const kvNs = env.MY_KV as AtuaKV;
           return new Response(JSON.stringify({
             hasGet: typeof kvNs.get === 'function',
             hasPut: typeof kvNs.put === 'function',
@@ -68,11 +68,11 @@ describe('Workers Compliance — KV Binding', () => {
         async fetch(request, env) {
           const url = new URL(request.url);
           if (url.pathname === '/put') {
-            await env.MY_KV.put('key1', 'value1');
+            await (env.MY_KV as AtuaKV).put('key1', 'value1');
             return new Response('stored');
           }
           if (url.pathname === '/get') {
-            const val = await env.MY_KV.get('key1');
+            const val = await (env.MY_KV as AtuaKV).get('key1');
             return new Response(JSON.stringify({ value: val }));
           }
           return new Response('not found', { status: 404 });
@@ -103,8 +103,8 @@ describe('Workers Compliance — KV Binding', () => {
     const worker: WorkerModule = {
       default: {
         async fetch(request, env) {
-          await env.MY_KV.delete('to-delete');
-          const val = await env.MY_KV.get('to-delete');
+          await (env.MY_KV as AtuaKV).delete('to-delete');
+          const val = await (env.MY_KV as AtuaKV).get('to-delete');
           return new Response(JSON.stringify({ value: val }));
         },
       },
@@ -133,7 +133,7 @@ describe('Workers Compliance — KV Binding', () => {
     const worker: WorkerModule = {
       default: {
         async fetch(request, env) {
-          const result = await env.MY_KV.list();
+          const result = await (env.MY_KV as AtuaKV).list();
           return new Response(JSON.stringify({
             keys: result.keys.map((k: any) => k.name),
             list_complete: result.list_complete,
@@ -166,7 +166,7 @@ describe('Workers Compliance — KV Binding', () => {
     const worker: WorkerModule = {
       default: {
         async fetch(request, env) {
-          const result = await env.MY_KV.getWithMetadata('meta-key');
+          const result = await (env.MY_KV as AtuaKV).getWithMetadata('meta-key');
           return new Response(JSON.stringify({
             value: result.value,
             metadata: result.metadata,

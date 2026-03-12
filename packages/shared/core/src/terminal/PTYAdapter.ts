@@ -63,19 +63,22 @@ export class PTYAdapter {
     this._inputLine = '';
 
     // Process stdout → terminal
-    const onStdout = (data: string) => {
+    const onStdout = (...args: unknown[]) => {
+      const data = args[0] as string;
       const output = this.config.crlf ? data.replace(/\n/g, '\r\n') : data;
       this.terminal.write(output);
     };
 
     // Process stderr → terminal (displayed as-is, could add coloring)
-    const onStderr = (data: string) => {
+    const onStderr = (...args: unknown[]) => {
+      const data = args[0] as string;
       const output = this.config.crlf ? data.replace(/\n/g, '\r\n') : data;
       this.terminal.write(output);
     };
 
     // Process exit → notify terminal
-    const onExit = (code: number) => {
+    const onExit = (...args: any[]) => {
+      const code = args[0] as number;
       this.terminal.write(`\r\n[Process exited with code ${code}]\r\n`);
       this.unbindProcess?.();
       this.unbindProcess = null;
@@ -93,12 +96,13 @@ export class PTYAdapter {
     };
 
     // Terminal input → process stdin
-    const onInput = (data: string) => {
-      this.handleInput(data as string);
+    const onInput = (...args: unknown[]) => {
+      this.handleInput(args[0] as string);
     };
 
     // Terminal resize → process
-    const onResize = (size: unknown) => {
+    const onResize = (...args: unknown[]) => {
+      const size = args[0];
       const { cols, rows } = size as { cols: number; rows: number };
       // Emit SIGWINCH-like event to process
       if (this.process) {

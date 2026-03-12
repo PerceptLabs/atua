@@ -112,8 +112,8 @@ export class PackageFetcher {
       const reader = ds.readable.getReader();
 
       const chunks: Uint8Array[] = [];
-      writer.write(data);
-      writer.close();
+      await writer.write(data as any);
+      await writer.close();
 
       while (true) {
         const { done, value } = await reader.read();

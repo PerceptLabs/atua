@@ -108,12 +108,12 @@ describe('Browser Compatibility — Feature Detection', () => {
       const runtime = qjs.newRuntime();
       const ctx = runtime.newContext();
       const result = ctx.evalCode('1 + 1');
-      if (result.value) {
+      if ('value' in result && result.value) {
         const val = ctx.dump(result.value);
         result.value.dispose();
         if (val === 2) status = 'OK';
       }
-      if (result.error) result.error.dispose();
+      if ('error' in result && result.error) result.error.dispose();
       ctx.dispose();
       runtime.dispose();
     } catch {}

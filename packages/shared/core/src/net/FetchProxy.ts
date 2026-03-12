@@ -7,6 +7,7 @@
  * - Request/response serialization (structured clone safe)
  * - Max response size enforcement
  */
+export type { FetchProxyConfig } from './types.js';
 import type { FetchProxyConfig } from './types.js';
 
 export interface SerializedRequest {
