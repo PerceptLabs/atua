@@ -1,4 +1,4 @@
-// CatalystDev — Build Pipeline + HMR
+// AtuaDev — Build Pipeline + HMR
 export { BuildPipeline, PassthroughTranspiler, EsbuildTranspiler } from './BuildPipeline.js';
 export { getLoader, parseImports, resolveRelative } from './BuildPipeline.js';
 export type {

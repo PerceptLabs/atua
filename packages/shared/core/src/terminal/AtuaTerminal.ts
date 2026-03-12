@@ -6,7 +6,7 @@
  *   - WebGL renderer addon for performance
  *   - Fit addon for responsive sizing
  *   - Web-links addon for clickable URLs
- *   - PTY adapter that bridges CatalystProc stdio
+ *   - PTY adapter that bridges AtuaProc stdio
  *   - Signal handling (Ctrl+C, Ctrl+D, Ctrl+Z)
  */
 

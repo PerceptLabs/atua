@@ -1,4 +1,4 @@
-// CatalystProc — Process management layer
+// AtuaProc — Process management layer
 export { ProcessManager } from './ProcessManager.js';
 export { AtuaProcess } from './AtuaProcess.js';
 export type { ProcessOptions, ExecResult, ProcessManagerConfig } from './ProcessManager.js';

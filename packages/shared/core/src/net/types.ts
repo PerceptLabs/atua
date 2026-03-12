@@ -1,5 +1,5 @@
 /**
- * CatalystNet type definitions
+ * AtuaNet type definitions
  */
 
 /** Preview Service Worker configuration */

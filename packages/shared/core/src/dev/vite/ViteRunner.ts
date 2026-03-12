@@ -3,7 +3,7 @@
  *
  * Bridges between Vite's expectations and the browser environment:
  *   - AtuaFS provides the virtual filesystem (fs.watch, fs.readFile, etc.)
- *   - CatalystNet (Service Worker) intercepts HTTP requests to the dev server
+ *   - AtuaNet (Service Worker) intercepts HTTP requests to the dev server
  *   - HMR WebSocket emulated through MessageChannel
  *   - File changes detected vian AtuaFS FileSystemObserver
  *

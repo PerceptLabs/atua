@@ -6,7 +6,7 @@
  * Tests three security surfaces:
  * 1. AtuaFS — path traversal & null byte injection
  * 2. AtuaEngine — QuickJS sandbox escape prevention
- * 3. CatalystNet — domain filtering, protocol validation
+ * 3. AtuaNet — domain filtering, protocol validation
  *
  * If any test fails, there is a real vulnerability.
  */
@@ -251,10 +251,10 @@ describe('Security — AtuaEngine Sandbox Escape', () => {
 });
 
 // =========================================================================
-// CatalystNet — Domain & Request Filtering
+// AtuaNet — Domain & Request Filtering
 // =========================================================================
 
-describe('Security — CatalystNet Domain Filtering', () => {
+describe('Security — AtuaNet Domain Filtering', () => {
   it('should block unlisted domains when allowlist is set', () => {
     const proxy = new FetchProxy({
       allowlist: ['registry.npmjs.org', 'esm.sh'],

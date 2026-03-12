@@ -6,7 +6,7 @@
  *
  * Usage:
  *   // astro.config.mjs
- *   import catalyst from '@aspect/atua-astro';
+ *   import atua from '@aspect/atua-astro';
  *   export default defineConfig({
  *     output: 'server',
  *     adapter: atua(),

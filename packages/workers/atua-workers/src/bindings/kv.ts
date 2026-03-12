@@ -33,7 +33,7 @@ export class AtuaKV {
   private db: IDBDatabase | null = null;
 
   constructor(namespace: string) {
-    this.dbName = `catalyst-kv-${namespace}`;
+    this.dbName = `atua-kv-${namespace}`;
   }
 
   // -----------------------------------------------------------------------

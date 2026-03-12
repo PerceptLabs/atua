@@ -1,4 +1,4 @@
-// CatalystPkg — Package Management
+// AtuaPkg — Package Management
 export * as Semver from './Semver.js';
 export { Lockfile } from './Lockfile.js';
 export type { LockfileData, LockfileEntry } from './Lockfile.js';

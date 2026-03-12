@@ -1,5 +1,5 @@
 /**
- * PTYAdapter — Bridges CatalystProc stdio with AtuaTerminal
+ * PTYAdapter — Bridges AtuaProc stdio with AtuaTerminal
  *
  * Connects an AtuaProcess to an AtuaTerminal:
  *   - Process stdout/stderr → terminal write

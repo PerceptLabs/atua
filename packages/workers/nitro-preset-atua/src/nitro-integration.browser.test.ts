@@ -110,7 +110,7 @@ describe('Nitro Preset — Route Handling', () => {
 });
 
 describe('Nitro Preset — Bindings Integration', () => {
-  it('event.context.catalyst.env accessible in route handlers', async () => {
+  it('event.context.atua.env accessible in route handlers', async () => {
     runtime = await AtuaWorkers.create({
       workers: {
         nitro: {

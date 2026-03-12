@@ -99,7 +99,7 @@ export interface ModuleLoaderCapabilities {
  *
  * Separating resolution from execution means the same engine can serve
  * different resolution strategies:
- *   - NodeCompatLoader: unenv polyfills + CatalystPkg (esm.sh)
+ *   - NodeCompatLoader: unenv polyfills + AtuaPkg (esm.sh)
  *   - DenoNativeLoader: native npm: + node: resolution (future)
  *   - StrictWorkersLoader: Workers-only globals, no Node builtins (future)
  */

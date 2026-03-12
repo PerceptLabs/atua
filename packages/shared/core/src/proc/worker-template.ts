@@ -1,5 +1,5 @@
 /**
- * Worker template for CatalystProc
+ * Worker template for AtuaProc
  *
  * Generates the source code for a Worker that boots QuickJS-WASM
  * and executes commands in an isolated context.
@@ -44,7 +44,7 @@ export interface WorkerResponse {
  */
 export function getWorkerSource(): string {
   return `
-// CatalystProc Worker Entry (simple mode)
+// AtuaProc Worker Entry (simple mode)
 // Boots QuickJS-WASM and executes commands in isolation
 
 let ctx = null;
@@ -142,7 +142,7 @@ boot();
  */
 export function getEnhancedWorkerSource(): string {
   return `
-// CatalystProc Worker — Enhanced with MessagePort FS and StdioBatcher
+// AtuaProc Worker — Enhanced with MessagePort FS and StdioBatcher
 // This runs in its own thread with its own QuickJS-WASM instance
 
 let ctx = null;

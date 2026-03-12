@@ -5,11 +5,11 @@
  * Each driver instance creates its own AtuaKV namespace.
  *
  * Usage in nitro.config.ts:
- *   import catalystKVDriver from '@aspect/nitro-preset-atua/storage-driver';
+ *   import atuaKVDriver from '@aspect/nitro-preset-atua/storage-driver';
  *
  *   export default defineNitroConfig({
  *     storage: {
- *       data: { driver: catalystKVDriver({ namespace: 'my-app-data' }) }
+ *       data: { driver: atuaKVDriver({ namespace: 'my-app-data' }) }
  *     }
  *   })
  *
@@ -46,7 +46,7 @@ export interface StorageDriver {
  *
  * This driver can be used standalone or with Nitro's storage system.
  */
-export function catalystKVDriver(
+export function atuaKVDriver(
   options?: AtuaKVDriverOptions,
 ): StorageDriver {
   const namespace = options?.namespace ?? 'nitro-data';
@@ -60,7 +60,7 @@ export function catalystKVDriver(
   }
 
   return {
-    name: 'catalyst-kv',
+    name: 'atua-kv',
 
     async hasItem(key: string): Promise<boolean> {
       const value = await getKV().get(key);
@@ -101,4 +101,4 @@ export function catalystKVDriver(
   };
 }
 
-export default catalystKVDriver;
+export default atuaKVDriver;

@@ -8,7 +8,7 @@
  * At runtime, this wraps nitroApp.localFetch() in the Workers module format:
  *   export default { async fetch(request, env, ctx) { ... } }
  *
- * Bindings are made accessible to route handlers via event.context.catalyst.env.
+ * Bindings are made accessible to route handlers via event.context.atua.env.
  */
 
 // @ts-ignore — resolved by Nitro's build system

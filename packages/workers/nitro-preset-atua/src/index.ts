@@ -6,7 +6,7 @@
  */
 export { default as preset, type AtuaNitroPreset } from './preset.js';
 export {
-  catalystKVDriver,
+  atuaKVDriver,
   type AtuaKVDriverOptions,
   type StorageDriver,
 } from './storage-driver.js';

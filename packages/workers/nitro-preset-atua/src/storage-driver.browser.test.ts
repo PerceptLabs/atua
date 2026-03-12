@@ -5,13 +5,13 @@
  * Runs in Chromium via Vitest browser mode using real IndexedDB.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { catalystKVDriver, type StorageDriver } from './storage-driver.js';
+import { atuaKVDriver, type StorageDriver } from './storage-driver.js';
 
 let driver: StorageDriver;
 let counter = 0;
 
 beforeEach(() => {
-  driver = catalystKVDriver({
+  driver = atuaKVDriver({
     namespace: `storage-test-${Date.now()}-${counter++}`,
   });
 });
@@ -20,7 +20,7 @@ afterEach(async () => {
   if (driver.dispose) await driver.dispose();
 });
 
-describe('catalystKVDriver — Basic Operations', () => {
+describe('atuaKVDriver — Basic Operations', () => {
   it('setItem and getItem round-trip', async () => {
     await driver.setItem('key1', 'value1');
     const result = await driver.getItem('key1');
@@ -55,7 +55,7 @@ describe('catalystKVDriver — Basic Operations', () => {
   });
 });
 
-describe('catalystKVDriver — Keys and Clear', () => {
+describe('atuaKVDriver — Keys and Clear', () => {
   it('getKeys returns all keys', async () => {
     await driver.setItem('a', '1');
     await driver.setItem('b', '2');
@@ -95,7 +95,7 @@ describe('catalystKVDriver — Keys and Clear', () => {
   });
 });
 
-describe('catalystKVDriver — JSON Values', () => {
+describe('atuaKVDriver — JSON Values', () => {
   it('stores and retrieves JSON as string', async () => {
     const data = JSON.stringify({ name: 'Alice', age: 30 });
     await driver.setItem('user', data);

@@ -4,7 +4,7 @@
  * Each op category gets a browser API backend:
  *   op_read_file  → AtuaFS (OPFS)
  *   op_write_file → AtuaFS (OPFS)
- *   op_fetch      → native fetch / CatalystNet
+ *   op_fetch      → native fetch / AtuaNet
  *   op_crypto_*   → Web Crypto API
  *   op_timer_*    → setTimeout/setInterval
  *   op_env_*      → in-memory env map
@@ -226,7 +226,7 @@ export class OpsBridge {
 
   private registerProcessOps(): void {
     this.ops.set('op_spawn', async (): Promise<OpResult> => {
-      return { ok: false, error: 'op_spawn requires CatalystProc (not yet wired)' };
+      return { ok: false, error: 'op_spawn requires AtuaProc (not yet wired)' };
     });
   }
 }

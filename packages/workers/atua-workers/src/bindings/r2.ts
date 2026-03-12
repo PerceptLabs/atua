@@ -37,7 +37,7 @@ export class AtuaR2 {
   private db: IDBDatabase | null = null;
 
   constructor(bucketName: string) {
-    this.dbName = `catalyst-r2-${bucketName}`;
+    this.dbName = `atua-r2-${bucketName}`;
   }
 
   // -----------------------------------------------------------------------
