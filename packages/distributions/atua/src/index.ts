@@ -1,8 +1,8 @@
 /**
  * @aspect/atua — Distribution package for Workers mode
  *
- * Re-exports the complete Atua runtime with native V8 execution
- * and NodeCompatLoader pre-wired. Consumers import from this
+ * Re-exports the complete Atua runtime with native V8 execution.
+ * Consumers import from this
  * package for the standard Workers-compatible experience.
  *
  * Usage:
@@ -15,9 +15,6 @@ export {
   // Top-level factory
   Atua,
   createRuntime,
-  // Legacy engine (kept for backward compat)
-  AtuaEngine,
-  NodeCompatLoader,
   // Filesystem
   AtuaFS,
   // Network
@@ -99,8 +96,6 @@ export {
 // Re-export all types
 export type {
   AtuaConfig,
-  EngineConfig,
-  ConsoleLevel,
   IEngine,
   IModuleLoader,
   EngineFactory,

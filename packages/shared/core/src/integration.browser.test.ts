@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import { Atua } from './atua.js';
 import { AtuaFS } from './fs/AtuaFS.js';
-import { AtuaEngine } from './engine/AtuaEngine.js';
+import { NativeEngine } from './engines/native/NativeEngine.js';
 import { ProcessManager } from './proc/ProcessManager.js';
 import { PackageManager } from './pkg/PackageManager.js';
 import { BuildPipeline, PassthroughTranspiler } from './dev/BuildPipeline.js';
@@ -97,15 +97,15 @@ describe('Integration — Package Install + Require', () => {
     expect(fs.existsSync('/node_modules/lodash/index.js')).toBe(true);
 
     // Create engine and use the package
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
     try {
       const result = await engine.eval(`
         var _ = require('lodash');
-        JSON.stringify(_.chunk([1,2,3,4,5,6], 3));
+        module.exports = JSON.stringify(_.chunk([1,2,3,4,5,6], 3));
       `);
-      expect(JSON.parse(result)).toEqual([[1, 2, 3], [4, 5, 6]]);
+      expect(JSON.parse(result as string)).toEqual([[1, 2, 3], [4, 5, 6]]);
     } finally {
-      engine.dispose();
+      await engine.destroy();
     }
   });
 });
@@ -134,12 +134,12 @@ describe('Integration — installAll from package.json', () => {
     expect(results[0].name).toBe('lodash');
 
     // Verify require works
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
     try {
-      const result = await engine.eval(`require('lodash').add(3, 4)`);
+      const result = await engine.eval(`module.exports = require('lodash').add(3, 4)`);
       expect(result).toBe(7);
     } finally {
-      engine.dispose();
+      await engine.destroy();
     }
   });
 });
@@ -183,15 +183,15 @@ describe('Integration — Process Execution', () => {
 });
 
 describe('Integration — Sandbox Security', () => {
-  it('should block access to window/document from QuickJS', async () => {
-    const engine = await AtuaEngine.create();
+  it('should block access to window/document from NativeEngine', async () => {
+    const engine = await NativeEngine.create();
     try {
       const result = await engine.eval(
-        'typeof window === "undefined" && typeof document === "undefined"',
+        'module.exports = typeof window === "undefined" && typeof document === "undefined"',
       );
       expect(result).toBe(true);
     } finally {
-      engine.dispose();
+      await engine.destroy();
     }
   });
 
@@ -206,7 +206,7 @@ describe('Integration — Sandbox Security', () => {
   });
 
   it('should enforce memory limits', async () => {
-    const engine = await AtuaEngine.create({ memoryLimit: 2 }); // 2MB
+    const engine = await NativeEngine.create({ memoryLimit: 2 }); // 2MB
     try {
       await expect(
         engine.eval(`
@@ -217,20 +217,20 @@ describe('Integration — Sandbox Security', () => {
         `),
       ).rejects.toThrow();
     } finally {
-      engine.dispose();
+      await engine.destroy();
     }
   });
 
   it('should isolate global state between engines', async () => {
-    const engine1 = await AtuaEngine.create();
-    const engine2 = await AtuaEngine.create();
+    const engine1 = await NativeEngine.create();
+    const engine2 = await NativeEngine.create();
     try {
       await engine1.eval('globalThis.secret = 42;');
-      const result = await engine2.eval('typeof globalThis.secret');
+      const result = await engine2.eval('module.exports = typeof globalThis.secret');
       expect(result).toBe('undefined');
     } finally {
-      engine1.dispose();
-      engine2.dispose();
+      await engine1.destroy();
+      await engine2.destroy();
     }
   });
 });
@@ -268,12 +268,12 @@ describe('Integration — Offline Packages', () => {
     expect(info.cached).toBe(true);
 
     // require() should still work
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
     try {
-      const result = await engine.eval(`require('lodash').add(5, 5)`);
+      const result = await engine.eval(`module.exports = require('lodash').add(5, 5)`);
       expect(result).toBe(10);
     } finally {
-      engine.dispose();
+      await engine.destroy();
     }
   });
 });

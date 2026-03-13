@@ -7,7 +7,7 @@
  */
 import { describe, it, expect, afterAll } from 'vitest';
 import { AtuaFS } from '../fs/AtuaFS.js';
-import { AtuaEngine } from '../engine/AtuaEngine.js';
+import { NativeEngine } from '../engines/native/NativeEngine.js';
 import { PROVIDER_REGISTRY } from '../engine/host-bindings/unenv-bridge.js';
 
 interface CompatResult {
@@ -30,7 +30,7 @@ function record(module: string, method: string, status: CompatResult['status']) 
   results.push({ module, method, status, provider });
 }
 
-let engine: AtuaEngine;
+let engine: NativeEngine;
 let fs: AtuaFS;
 
 // Shared engine for all compat tests
@@ -40,13 +40,13 @@ const setup = (async () => {
   fs.mkdirSync('/testdir', { recursive: true });
   fs.writeFileSync('/testdir/a.txt', 'aaa');
   fs.writeFileSync('/testdir/b.txt', 'bbb');
-  engine = await AtuaEngine.create({ fs });
+  engine = await NativeEngine.create({ fs });
 })();
 
 async function evalSafe(code: string): Promise<any> {
   await setup;
   try {
-    return await engine.eval(code);
+    return await engine.eval(`module.exports = eval(${JSON.stringify(code)})`);
   } catch {
     return undefined;
   }
@@ -401,7 +401,7 @@ describe('Node.js Compat — net (stub)', () => {
 
 afterAll(async () => {
   await setup;
-  engine.dispose();
+  await engine.destroy();
   fs.destroy();
 
   // Generate provider-tagged compatibility report

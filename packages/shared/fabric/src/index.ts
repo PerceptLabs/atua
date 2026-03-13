@@ -13,6 +13,8 @@ export { TransactionLog } from './hub/transaction-log.js';
 // Transports
 export { MessageChannelTransport } from './transports/message-channel.js';
 export type { ToolHandler } from './transports/message-channel.js';
+export { StdioTransport } from './transports/stdio.js';
+export type { StdioTransportOptions } from './transports/stdio.js';
 
 // Providers
 export { createProvider } from './providers/base-provider.js';
@@ -28,6 +30,13 @@ export type { PreviewController } from './providers/atua-preview-provider.js';
 export { createAtuaTelemetryProvider } from './providers/atua-telemetry-provider.js';
 export { createAtuaMetaProvider } from './providers/atua-meta-provider.js';
 
+// Server management
+export { ServerManager } from './hub/server-manager.js';
+export type { ServerManagerDeps } from './hub/server-manager.js';
+
+// Security
+export { CapabilityGate, PermissionError } from './security/capability-gate.js';
+
 // Types
 export type {
   ToolDefinition,
@@ -40,4 +49,8 @@ export type {
   ToolFilter,
   LogFilter,
   ProviderHealth,
+  ServerConfig,
+  Capabilities,
+  ServerStatus,
+  ServerState,
 } from './hub/types.js';

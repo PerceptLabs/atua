@@ -1,7 +1,7 @@
 /**
- * Process shim for QuickJS.
+ * Process host binding.
  * Provides a minimal Node-like process object.
- * Returns source code string to be eval'd inside QuickJS.
+ * Returns source code string for NativeModuleLoader.
  */
 export function getProcessSource(env?: Record<string, string>): string {
   const envJson = JSON.stringify(env ?? {});

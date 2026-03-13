@@ -4,7 +4,7 @@
  * Tests hub introspection: capabilities (exact tool counts),
  * health, log filtering, and version info.
  *
- * Registers fs (10 tools) + meta (4 tools) = 2 providers, 14 tools total.
+ * Registers fs (10 tools) + meta (6 tools) = 2 providers, 16 tools total.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MCPHub } from '../hub/hub.js';
@@ -24,14 +24,16 @@ describe('atua.meta Provider', () => {
   });
 
   describe('tool registration', () => {
-    it('should register all 4 tools', () => {
+    it('should register all 6 tools', () => {
       const tools = hub.listTools({ namespace: 'atua.meta' });
-      expect(tools).toHaveLength(4);
+      expect(tools).toHaveLength(6);
       const names = tools.map((t) => t.name);
       expect(names).toContain('atua.meta.capabilities');
       expect(names).toContain('atua.meta.health');
       expect(names).toContain('atua.meta.log');
       expect(names).toContain('atua.meta.version');
+      expect(names).toContain('atua.meta.install_server');
+      expect(names).toContain('atua.meta.server_health');
     });
   });
 
@@ -41,11 +43,11 @@ describe('atua.meta Provider', () => {
       expect(result.isError).toBeUndefined();
       const content = result.content as any;
       expect(content.providerCount).toBe(2);
-      expect(content.totalTools).toBe(14);
+      expect(content.totalTools).toBe(16);
       expect(content.providers['atua.fs']).toBeDefined();
       expect(content.providers['atua.fs'].toolCount).toBe(10);
       expect(content.providers['atua.meta']).toBeDefined();
-      expect(content.providers['atua.meta'].toolCount).toBe(4);
+      expect(content.providers['atua.meta'].toolCount).toBe(6);
     });
   });
 

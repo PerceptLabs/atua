@@ -1,5 +1,5 @@
 /**
- * StaticAnalysis — Lightweight code analysis replacing QuickJS sandbox validation.
+ * StaticAnalysis — Lightweight code analysis for pre-execution validation.
  *
  * Zero-download, <1ms syntax check via new Function() + optional pattern scan.
  * Does NOT execute code. Does NOT catch infinite loops (Worker.terminate() does that).

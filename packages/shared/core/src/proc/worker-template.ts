@@ -20,7 +20,7 @@
  */
 
 export interface WorkerMessage {
-  type: 'exec' | 'kill' | 'stdin';
+  type: 'exec' | 'exec-server' | 'kill' | 'stdin';
   code?: string;
   signal?: number;
   data?: string;
@@ -179,9 +179,71 @@ function makeConsole() {
 
 // ---- Node.js globals ----
 
+// Stdin handler registry — shared between makeProcess() and controlPort handler.
+// controlPort forwards 'stdin' messages to these handlers.
+var stdinHandlers = [];
+var stdinOnceHandlers = [];
+
 function makeProcess(config) {
   var env = config.env || {};
   var cwd = config.cwd || '/';
+
+  // process.stdin — event-emitter-like readable for MCP server JSON-RPC
+  var stdin = {
+    readable: true,
+    isTTY: false,
+    _encoding: 'utf8',
+    setEncoding: function(enc) { stdin._encoding = enc; return stdin; },
+    resume: function() { return stdin; },
+    pause: function() { return stdin; },
+    read: function() { return null; },
+    on: function(event, handler) {
+      if (event === 'data') stdinHandlers.push(handler);
+      return stdin;
+    },
+    once: function(event, handler) {
+      if (event === 'data') stdinOnceHandlers.push(handler);
+      return stdin;
+    },
+    removeListener: function(event, handler) {
+      if (event === 'data') {
+        for (var i = stdinHandlers.length - 1; i >= 0; i--) {
+          if (stdinHandlers[i] === handler) { stdinHandlers.splice(i, 1); break; }
+        }
+        for (var j = stdinOnceHandlers.length - 1; j >= 0; j--) {
+          if (stdinOnceHandlers[j] === handler) { stdinOnceHandlers.splice(j, 1); break; }
+        }
+      }
+      return stdin;
+    },
+    off: function(event, handler) { return stdin.removeListener(event, handler); },
+    removeAllListeners: function() { stdinHandlers = []; stdinOnceHandlers = []; return stdin; },
+    pipe: function() { return stdin; },
+    unpipe: function() { return stdin; },
+  };
+
+  // process.stdout — writable that routes to StdioBatcher
+  var stdout = {
+    writable: true,
+    isTTY: false,
+    write: function(data) {
+      pushStdout(typeof data === 'string' ? data : String(data));
+      return true;
+    },
+    end: function() {},
+  };
+
+  // process.stderr — writable that routes to StdioBatcher
+  var stderr = {
+    writable: true,
+    isTTY: false,
+    write: function(data) {
+      pushStderr(typeof data === 'string' ? data : String(data));
+      return true;
+    },
+    end: function() {},
+  };
+
   return {
     env: env,
     cwd: function() { return cwd; },
@@ -197,6 +259,9 @@ function makeProcess(config) {
     execArgv: [],
     execPath: '/usr/local/bin/node',
     title: 'atua',
+    stdin: stdin,
+    stdout: stdout,
+    stderr: stderr,
     exit: function(code) {
       flushStdio();
       stdioPort.postMessage({ type: 'exit', code: code || 0 });
@@ -331,6 +396,47 @@ self.addEventListener('message', function(event) {
           pushStderr((ex.message || String(ex)) + '\\n');
           flushStdio();
           stdioPort.postMessage({ type: 'exit', code: 1 });
+        }
+      }
+
+      // Long-running server mode — does NOT auto-exit after code runs.
+      // Server stays alive to receive stdin messages (MCP JSON-RPC).
+      // Exit only via process.exit() or kill.
+      if (cmd.type === 'exec-server' && ready) {
+        try {
+          var fn = new Function(
+            'console', 'process', 'require',
+            'module', 'exports',
+            '__filename', '__dirname', 'global',
+            cmd.code || ''
+          );
+          var mod = { exports: {} };
+          fn(
+            self.console,
+            self.process,
+            self.require,
+            mod, mod.exports,
+            '<process>', '/',
+            self
+          );
+          // NO exit — server stays alive to receive stdin
+        } catch (ex) {
+          pushStderr((ex.message || String(ex)) + '\\n');
+          flushStdio();
+          stdioPort.postMessage({ type: 'exit', code: 1 });
+        }
+      }
+
+      // Forward stdin data to process.stdin handlers
+      if (cmd.type === 'stdin') {
+        var i;
+        for (i = 0; i < stdinHandlers.length; i++) {
+          stdinHandlers[i](cmd.data);
+        }
+        // Fire once handlers and clear them
+        var onces = stdinOnceHandlers.splice(0);
+        for (i = 0; i < onces.length; i++) {
+          onces[i](cmd.data);
         }
       }
 

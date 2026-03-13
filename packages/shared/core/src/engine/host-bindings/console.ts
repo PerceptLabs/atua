@@ -1,7 +1,7 @@
 /**
- * Console capture binding for QuickJS.
+ * Console capture host binding.
  * Creates a console object that forwards calls to host-injected callbacks.
- * Returns source code string to be eval'd inside QuickJS.
+ * Returns source code string for NativeModuleLoader.
  */
 export function getConsoleSource(): string {
   return `

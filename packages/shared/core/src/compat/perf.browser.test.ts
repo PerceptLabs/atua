@@ -5,7 +5,7 @@
  */
 import { describe, it, expect, afterAll } from 'vitest';
 import { AtuaFS } from '../fs/AtuaFS.js';
-import { AtuaEngine } from '../engine/AtuaEngine.js';
+import { NativeEngine } from '../engines/native/NativeEngine.js';
 import { ContentHashCache } from '../dev/ContentHashCache.js';
 
 interface PerfResult {
@@ -91,53 +91,53 @@ describe('Performance — AtuaFS', () => {
   });
 });
 
-describe('Performance — QuickJS', () => {
-  it('should boot QuickJS within target', async () => {
+describe('Performance — NativeEngine', () => {
+  it('should boot NativeEngine within target', async () => {
     const times: number[] = [];
 
     for (let i = 0; i < 3; i++) {
       const start = performance.now();
-      const engine = await AtuaEngine.create();
+      const engine = await NativeEngine.create();
       times.push(performance.now() - start);
-      engine.dispose();
+      await engine.destroy();
     }
 
-    reportPerf('QuickJS boot', times, 1000, '<1000ms');
+    reportPerf('NativeEngine boot', times, 1000, '<1000ms');
     expect(times.length).toBe(3);
   });
 
   it('should eval simple expression fast', async () => {
-    const engine = await AtuaEngine.create();
+    const engine = await NativeEngine.create();
     // Warm up
-    await engine.eval('1');
+    await engine.eval('module.exports = 1');
 
     const times: number[] = [];
     for (let i = 0; i < 20; i++) {
       const start = performance.now();
-      await engine.eval('1 + 1');
+      await engine.eval('module.exports = 1 + 1');
       times.push(performance.now() - start);
     }
 
-    reportPerf('QuickJS eval simple', times, 5);
-    engine.dispose();
+    reportPerf('NativeEngine eval simple', times, 5);
+    await engine.destroy();
   });
 
   it('should require fs fast', async () => {
     const fs = await AtuaFS.create('perf-qjs-fs');
     fs.writeFileSync('/perf-test.txt', 'hello');
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
     // Warm up
-    await engine.eval(`require('fs').readFileSync('/perf-test.txt', 'utf-8')`);
+    await engine.eval(`module.exports = require('fs').readFileSync('/perf-test.txt', 'utf-8')`);
 
     const times: number[] = [];
     for (let i = 0; i < 10; i++) {
       const start = performance.now();
-      await engine.eval(`require('fs').readFileSync('/perf-test.txt', 'utf-8')`);
+      await engine.eval(`module.exports = require('fs').readFileSync('/perf-test.txt', 'utf-8')`);
       times.push(performance.now() - start);
     }
 
-    reportPerf('QuickJS require(fs).readFileSync', times, 10);
-    engine.dispose();
+    reportPerf('NativeEngine require(fs).readFileSync', times, 10);
+    await engine.destroy();
     fs.destroy();
   });
 });

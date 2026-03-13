@@ -1,7 +1,7 @@
 /**
- * Buffer polyfill for QuickJS.
+ * Buffer polyfill host binding.
  * Implements Buffer as a Uint8Array wrapper with encoding support.
- * Returns source code string to be eval'd inside QuickJS.
+ * Returns source code string for NativeModuleLoader.
  */
 export function getBufferSource(): string {
   return `

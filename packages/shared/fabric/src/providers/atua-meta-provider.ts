@@ -1,9 +1,11 @@
 /**
- * atua.meta MCP Provider — hub introspection as 4 MCP tools.
+ * atua.meta MCP Provider — hub introspection as 6 MCP tools.
  *
- * Provides self-description, health monitoring, and log access.
+ * Provides self-description, health monitoring, log access,
+ * and server management (install, health).
  */
 import type { MCPHub } from '../hub/hub.js';
+import type { ServerManager } from '../hub/server-manager.js';
 import type { ProviderRegistration, ToolResult } from '../hub/types.js';
 import { createProvider } from './base-provider.js';
 
@@ -23,9 +25,19 @@ const TOOLS = [
     limit: { type: 'number', description: 'Max entries to return' },
   }),
   tool('version', 'Get runtime version info', {}),
+  tool('install_server', 'Install and register a local MCP server', {
+    name: { type: 'string', description: 'Unique server name', required: true },
+    source: { type: 'string', description: 'Source specifier (local:/path or npm:package)', required: true },
+    env: { type: 'object', description: 'Environment variables for the server' },
+    capabilities: { type: 'object', description: 'Capability declarations (fs, network, db, proc, preview)', required: true },
+  }),
+  tool('server_health', 'Get status for all managed MCP servers', {}),
 ];
 
-export function createAtuaMetaProvider(hub: MCPHub): ProviderRegistration {
+export function createAtuaMetaProvider(
+  hub: MCPHub,
+  serverManager?: ServerManager,
+): ProviderRegistration {
   async function handler(toolName: string, args: unknown): Promise<ToolResult> {
     const a = args as Record<string, any>;
     const shortName = toolName.substring(NS.length + 1);
@@ -95,6 +107,29 @@ export function createAtuaMetaProvider(hub: MCPHub): ProviderRegistration {
               platform: 'browser',
             },
           };
+        }
+        case 'install_server': {
+          if (!serverManager) {
+            return { content: 'ServerManager not configured', isError: true };
+          }
+          await serverManager.install({
+            name: a.name,
+            source: a.source,
+            env: a.env,
+            capabilities: a.capabilities,
+          });
+          return { content: { installed: true, name: a.name } };
+        }
+        case 'server_health': {
+          if (!serverManager) {
+            return { content: 'ServerManager not configured', isError: true };
+          }
+          const statuses = serverManager.getAllStatus();
+          const result: Record<string, any> = {};
+          for (const [name, status] of statuses) {
+            result[name] = status;
+          }
+          return { content: result };
         }
         default:
           return { content: `Unknown tool: ${toolName}`, isError: true };

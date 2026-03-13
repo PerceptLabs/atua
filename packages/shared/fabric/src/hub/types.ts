@@ -113,3 +113,32 @@ export interface ProviderHealth {
   toolCount: number;
   namespace: string;
 }
+
+// ---------------------------------------------------------------------------
+// Server management (Phase 3 — stdio transport)
+// ---------------------------------------------------------------------------
+
+export interface ServerConfig {
+  name: string;
+  source: string; // 'npm:pkg', 'local:/path'
+  env?: Record<string, string>;
+  capabilities: Capabilities;
+}
+
+export interface Capabilities {
+  fs?: 'none' | { scope: string; write: boolean };
+  network?: 'none' | string[];
+  db?: 'none' | 'catalyst.d1';
+  proc?: 'none' | 'spawn' | 'full';
+  preview?: boolean;
+}
+
+export type ServerState = 'idle' | 'starting' | 'ready' | 'error' | 'stopped';
+
+export interface ServerStatus {
+  name: string;
+  state: ServerState;
+  tools: string[];
+  uptime: number;
+  error?: string;
+}

@@ -5,14 +5,14 @@
  *
  * Tests three security surfaces:
  * 1. AtuaFS — path traversal & null byte injection
- * 2. AtuaEngine — QuickJS sandbox escape prevention
+ * 2. NativeEngine — sandbox escape prevention
  * 3. AtuaNet — domain filtering, protocol validation
  *
  * If any test fails, there is a real vulnerability.
  */
 import { describe, it, expect } from 'vitest';
 import { AtuaFS } from '../fs/AtuaFS.js';
-import { AtuaEngine } from '../engine/AtuaEngine.js';
+import { NativeEngine } from '../engines/native/NativeEngine.js';
 import { FetchProxy, FetchBlockedError } from '../net/FetchProxy.js';
 
 // =========================================================================
@@ -75,112 +75,112 @@ describe('Security — AtuaFS Path Traversal', () => {
 });
 
 // =========================================================================
-// AtuaEngine — Sandbox Escape Prevention
+// NativeEngine — Sandbox Escape Prevention
 // =========================================================================
 
-describe('Security — AtuaEngine Sandbox Escape', () => {
+describe('Security — NativeEngine Sandbox Escape', () => {
   it('Function("return this")() should NOT return window/self', async () => {
     const fs = await AtuaFS.create('sec-sandbox-func-' + Date.now());
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
 
     const result = await engine.eval(
-      `typeof Function('return this')()`,
+      `module.exports = typeof Function('return this')()`,
     );
-    // In QuickJS, this returns the QuickJS global, not browser window
+    // In the sandbox, this returns the global, not browser window
     expect(result).toBe('object');
 
     // Verify it's NOT the browser window
     const hasWindow = await engine.eval(
-      `typeof Function('return this')().window`,
+      `module.exports = typeof Function('return this')().window`,
     );
     expect(hasWindow).toBe('undefined');
 
-    engine.dispose();
+    await engine.destroy();
     fs.destroy();
   });
 
   it('this.constructor.constructor("return this")() should be contained', async () => {
     const fs = await AtuaFS.create('sec-sandbox-ctor-' + Date.now());
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
 
     const result = await engine.eval(
-      `typeof this.constructor.constructor('return this')()`,
+      `module.exports = typeof this.constructor.constructor('return this')()`,
     );
     expect(result).toBe('object');
 
     // Should NOT have browser globals
     const hasFetch = await engine.eval(
-      `typeof this.constructor.constructor('return this')().fetch`,
+      `module.exports = typeof this.constructor.constructor('return this')().fetch`,
     );
     expect(hasFetch).toBe('undefined');
 
-    engine.dispose();
+    await engine.destroy();
     fs.destroy();
   });
 
   it('typeof window should be "undefined"', async () => {
     const fs = await AtuaFS.create('sec-sandbox-window-' + Date.now());
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
 
-    const result = await engine.eval(`typeof window`);
+    const result = await engine.eval(`module.exports = typeof window`);
     expect(result).toBe('undefined');
 
-    engine.dispose();
+    await engine.destroy();
     fs.destroy();
   });
 
   it('typeof document should be "undefined"', async () => {
     const fs = await AtuaFS.create('sec-sandbox-doc-' + Date.now());
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
 
-    const result = await engine.eval(`typeof document`);
+    const result = await engine.eval(`module.exports = typeof document`);
     expect(result).toBe('undefined');
 
-    engine.dispose();
+    await engine.destroy();
     fs.destroy();
   });
 
   it('typeof globalThis.fetch should be "undefined"', async () => {
     const fs = await AtuaFS.create('sec-sandbox-fetch-' + Date.now());
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
 
-    const result = await engine.eval(`typeof globalThis.fetch`);
+    const result = await engine.eval(`module.exports = typeof globalThis.fetch`);
     expect(result).toBe('undefined');
 
-    engine.dispose();
+    await engine.destroy();
     fs.destroy();
   });
 
   it('typeof self should be "undefined"', async () => {
     const fs = await AtuaFS.create('sec-sandbox-self-' + Date.now());
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
 
-    const result = await engine.eval(`typeof self`);
+    const result = await engine.eval(`module.exports = typeof self`);
     expect(result).toBe('undefined');
 
-    engine.dispose();
+    await engine.destroy();
     fs.destroy();
   });
 
   it('memory bomb should be terminated by memory limit', async () => {
     const fs = await AtuaFS.create('sec-sandbox-mem-' + Date.now());
-    const engine = await AtuaEngine.create({ fs, memoryLimit: 8 }); // 8MB limit
+    const engine = await NativeEngine.create({ fs, memoryLimit: 8 }); // 8MB limit
 
     try {
       await engine.eval(`var a = []; while(true) a.push(new Array(1000000))`);
       expect.fail('should have thrown on memory limit');
     } catch (e: any) {
-      // QuickJS throws InternalError when memory is exceeded
+      // Engine should throw when memory is exceeded
       expect(e).toBeDefined();
     }
 
-    engine.dispose();
+    await engine.destroy();
     fs.destroy();
   });
 
-  it('process.exit(0) should exit QuickJS context, NOT the browser tab', async () => {
+  it('process.exit(0) should exit engine context, NOT the browser tab', async () => {
     const fs = await AtuaFS.create('sec-sandbox-exit-' + Date.now());
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
 
     // process.exit should be a no-op or throw — it should NOT kill the browser
     try {
@@ -192,13 +192,13 @@ describe('Security — AtuaEngine Sandbox Escape', () => {
     // If we reach here, the browser tab is still alive — that's the key check
     expect(true).toBe(true);
 
-    engine.dispose();
+    await engine.destroy();
     fs.destroy();
   });
 
   it('require("child_process") should throw or return stub', async () => {
     const fs = await AtuaFS.create('sec-sandbox-cp-' + Date.now());
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
 
     try {
       await engine.eval(`require('child_process').exec('ls')`);
@@ -208,13 +208,13 @@ describe('Security — AtuaEngine Sandbox Escape', () => {
       expect(e.message).toContain('not available');
     }
 
-    engine.dispose();
+    await engine.destroy();
     fs.destroy();
   });
 
   it('require("net") should throw or return stub', async () => {
     const fs = await AtuaFS.create('sec-sandbox-net-' + Date.now());
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
 
     try {
       await engine.eval(`require('net').connect()`);
@@ -223,13 +223,13 @@ describe('Security — AtuaEngine Sandbox Escape', () => {
       expect(e.message).toContain('not available');
     }
 
-    engine.dispose();
+    await engine.destroy();
     fs.destroy();
   });
 
   it('deeply nested requires should not stack overflow', async () => {
     const fs = await AtuaFS.create('sec-sandbox-deep-' + Date.now());
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
 
     // Write chain of modules that require each other
     fs.mkdirSync('/deep', { recursive: true });
@@ -239,13 +239,13 @@ describe('Security — AtuaEngine Sandbox Escape', () => {
     }
 
     try {
-      const result = await engine.eval(`require('/deep/mod0.js')`);
+      const result = await engine.eval(`module.exports = require('/deep/mod0.js')`);
       expect(result).toBe('end');
     } catch {
       // Stack overflow or recursion limit is also acceptable
     }
 
-    engine.dispose();
+    await engine.destroy();
     fs.destroy();
   });
 });
@@ -375,9 +375,9 @@ describe('Security — AtuaNet Domain Filtering', () => {
 // =========================================================================
 
 describe('Security — Combined sandbox checks', () => {
-  it('QuickJS cannot access browser APIs via any known escape vector', async () => {
+  it('Engine cannot access browser APIs via any known escape vector', async () => {
     const fs = await AtuaFS.create('sec-combined-' + Date.now());
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
 
     // Test multiple known escape vectors
     const checks = [
@@ -395,35 +395,35 @@ describe('Security — Combined sandbox checks', () => {
     ];
 
     for (const check of checks) {
-      const result = await engine.eval(check);
+      const result = await engine.eval(`module.exports = ${check}`);
       expect(result).toBe('undefined');
     }
 
-    engine.dispose();
+    await engine.destroy();
     fs.destroy();
   });
 
-  it('require("fs") in QuickJS accesses AtuaFS, not host FS', async () => {
+  it('require("fs") in engine accesses AtuaFS, not host FS', async () => {
     const fs = await AtuaFS.create('sec-combined-fs-' + Date.now());
     fs.writeFileSync('/marker.txt', 'atua-virtual');
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
 
     // Write a file and read it back
     const result = await engine.eval(`
       var fs = require('fs');
-      fs.readFileSync('/marker.txt', 'utf-8');
+      module.exports = fs.readFileSync('/marker.txt', 'utf-8');
     `);
     expect(result).toBe('atua-virtual');
 
     // Try to read something that exists on the host but not in AtuaFS
     try {
-      await engine.eval(`require('fs').readFileSync('/etc/hostname', 'utf-8')`);
+      await engine.eval(`module.exports = require('fs').readFileSync('/etc/hostname', 'utf-8')`);
       // If it didn't throw, it should return undefined or empty — not the host's hostname
     } catch {
       // Throwing is expected — file doesn't exist in AtuaFS
     }
 
-    engine.dispose();
+    await engine.destroy();
     fs.destroy();
   });
 });

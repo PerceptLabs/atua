@@ -7,7 +7,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { AtuaFS } from '../fs/AtuaFS.js';
-import { AtuaEngine } from '../engine/AtuaEngine.js';
+import { NativeEngine } from '../engines/native/NativeEngine.js';
 import { PackageManager } from './PackageManager.js';
 import { PackageCache } from './PackageCache.js';
 import { Lockfile } from './Lockfile.js';
@@ -167,15 +167,15 @@ describe('PackageManager — Install & Resolve', () => {
 
     await pm.install('lodash');
 
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
     try {
       const result = await engine.eval(`
         var _ = require('lodash');
-        JSON.stringify(_.chunk([1, 2, 3, 4, 5, 6], 2));
+        module.exports = JSON.stringify(_.chunk([1, 2, 3, 4, 5, 6], 2));
       `);
-      expect(JSON.parse(result)).toEqual([[1, 2], [3, 4], [5, 6]]);
+      expect(JSON.parse(result as string)).toEqual([[1, 2], [3, 4], [5, 6]]);
     } finally {
-      engine.dispose();
+      await engine.destroy();
     }
   });
 
@@ -185,15 +185,15 @@ describe('PackageManager — Install & Resolve', () => {
 
     await pm.install('lodash');
 
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
     try {
       const result = await engine.eval(`
         var _ = require('lodash');
-        _.add(10, 20);
+        module.exports = _.add(10, 20);
       `);
       expect(result).toBe(30);
     } finally {
-      engine.dispose();
+      await engine.destroy();
     }
   });
 });
@@ -316,20 +316,20 @@ describe('PackageManager — installAll', () => {
 
     await pm.installAll();
 
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
     try {
       const result = await engine.eval(`
         var _ = require('lodash');
         var leftpad = require('leftpad');
         var chunked = _.chunk([1,2,3,4], 2);
         var padded = leftpad('42', 5, '0');
-        JSON.stringify({ chunked: chunked, padded: padded });
+        module.exports = JSON.stringify({ chunked: chunked, padded: padded });
       `);
-      const parsed = JSON.parse(result);
+      const parsed = JSON.parse(result as string);
       expect(parsed.chunked).toEqual([[1, 2], [3, 4]]);
       expect(parsed.padded).toBe('00042');
     } finally {
-      engine.dispose();
+      await engine.destroy();
     }
   });
 });
@@ -389,18 +389,18 @@ describe('PackageManager — Multiple packages in QuickJS', () => {
 
     await pm.install('mathlib');
 
-    const engine = await AtuaEngine.create({ fs });
+    const engine = await NativeEngine.create({ fs });
     try {
       const result = await engine.eval(`
         var math = require('mathlib');
-        JSON.stringify({ sq: math.square(5), cu: math.cube(3), pi: math.PI });
+        module.exports = JSON.stringify({ sq: math.square(5), cu: math.cube(3), pi: math.PI });
       `);
-      const parsed = JSON.parse(result);
+      const parsed = JSON.parse(result as string);
       expect(parsed.sq).toBe(25);
       expect(parsed.cu).toBe(27);
       expect(parsed.pi).toBe(3.14159);
     } finally {
-      engine.dispose();
+      await engine.destroy();
     }
   });
 });

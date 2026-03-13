@@ -18,4 +18,4 @@ export type {
   ModuleResolution,
   ModuleLoaderCapabilities,
   ModuleLoaderConfig,
-} from './IEngine.js';
+} from '../engine/interfaces.js';

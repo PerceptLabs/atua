@@ -5,10 +5,7 @@ export const VERSION = '0.0.1';
 
 export { AtuaFS } from './fs/index.js';
 
-// Legacy engine exports — kept for backward compatibility
-export { AtuaEngine } from './engine/index.js';
-export type { EngineConfig, ConsoleLevel } from './engine/index.js';
-export { NodeCompatLoader } from './engine/index.js';
+// Engine interfaces — used by NativeEngine, DenoEngine, AtuaProcess, ViteRunner
 export type {
   IEngine,
   IModuleLoader,
@@ -19,7 +16,7 @@ export type {
   ModuleResolution,
   ModuleLoaderCapabilities,
   ModuleLoaderConfig,
-} from './engine/index.js';
+} from './engine/interfaces.js';
 
 // Engines
 export { NativeEngine } from './engines/index.js';

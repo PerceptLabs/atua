@@ -1,7 +1,7 @@
 /**
- * EventEmitter implementation for QuickJS.
+ * EventEmitter host binding.
  * Complete Node.js-compatible EventEmitter.
- * Returns source code string to be eval'd inside QuickJS.
+ * Returns source code string for NativeModuleLoader.
  */
 export function getEventsSource(): string {
   return `

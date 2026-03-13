@@ -1,8 +1,8 @@
 /**
  * Host bindings barrel export.
- * Each binding returns a pure JS source string that can be injected
- * into QuickJS via evalCode(). The source defines module.exports so
- * it integrates with a CommonJS-style require() shim.
+ * Each binding returns a pure JS source string used by NativeModuleLoader
+ * to provide Node.js built-in modules. The source defines module.exports
+ * so it integrates with a CommonJS-style require() shim.
  *
  * Phase 13a: crypto removed (replaced by unenv-bridge crypto).
  * New modules (os, stream, http, querystring, string_decoder, zlib)

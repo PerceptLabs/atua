@@ -106,6 +106,54 @@ export class WorkerBridge {
     });
   }
 
+  /** Send data to the Worker's process.stdin */
+  writeStdin(data: string): void {
+    this.handle.controlPort.postMessage({ type: 'stdin', data });
+  }
+
+  /**
+   * Start a long-running server process in the Worker.
+   * Unlike exec(), the Worker does NOT auto-exit after code runs —
+   * it stays alive to receive stdin messages (e.g. MCP JSON-RPC).
+   */
+  startServer(
+    code: string,
+    callbacks: {
+      onStdout?: (data: string) => void;
+      onStderr?: (data: string) => void;
+      onExit?: (exitCode: number) => void;
+    } = {},
+  ): void {
+    this.handle.stdioPort.onmessage = (event: MessageEvent) => {
+      const msg = event.data;
+      switch (msg.type) {
+        case 'stdout-batch':
+          if (callbacks.onStdout) {
+            for (const chunk of msg.chunks) callbacks.onStdout(chunk);
+          }
+          break;
+        case 'stderr-batch':
+          if (callbacks.onStderr) {
+            for (const chunk of msg.chunks) callbacks.onStderr(chunk);
+          }
+          break;
+        case 'stdout':
+          callbacks.onStdout?.(msg.data);
+          break;
+        case 'stderr':
+          callbacks.onStderr?.(msg.data);
+          break;
+        case 'exit':
+          this.handle.state = 'terminated';
+          callbacks.onExit?.(msg.code ?? 0);
+          break;
+      }
+    };
+
+    this.handle.controlPort.postMessage({ type: 'exec-server', code });
+    this.handle.state = 'running';
+  }
+
   /** Handle AtuaFS proxy requests from the Worker */
   private async handleFsRequest(request: FsProxyRequest): Promise<void> {
     if (!this.fs) {

@@ -1,16 +1,16 @@
 /**
  * IEngine + IModuleLoader — Engine-agnostic abstraction boundary
  *
- * These interfaces define the contract between the engine layer (QuickJS, Deno)
- * and the rest of the system. The engine is a configuration choice, not an
- * architectural constraint.
+ * These interfaces define the contract between the engine layer and the rest
+ * of the system. The engine is a configuration choice, not an architectural
+ * constraint.
  *
  * IEngine: Pure execution — eval, evalFile, createInstance, destroy, events.
  * IModuleLoader: How imports resolve — builtins, filesystem, npm packages.
  *
  * The distribution package wires engine + loader:
- *   Atua: QuickJSEngine + NodeCompatLoader
- *   Reaction: DenoEngine + DenoNativeLoader (future)
+ *   Atua: NativeEngine + NativeModuleLoader
+ *   Reaction: DenoEngine + DenoNativeLoader
  */
 
 // =========================================================================
@@ -99,8 +99,8 @@ export interface ModuleLoaderCapabilities {
  *
  * Separating resolution from execution means the same engine can serve
  * different resolution strategies:
- *   - NodeCompatLoader: unenv polyfills + AtuaPkg (esm.sh)
- *   - DenoNativeLoader: native npm: + node: resolution (future)
+ *   - NativeModuleLoader: unenv polyfills + host-bindings
+ *   - DenoNativeLoader: native npm: + node: resolution
  *   - StrictWorkersLoader: Workers-only globals, no Node builtins (future)
  */
 export interface IModuleLoader {

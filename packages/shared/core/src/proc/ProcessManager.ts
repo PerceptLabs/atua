@@ -39,6 +39,8 @@ export interface ProcessManagerConfig {
   fs?: AtuaFS;
   maxProcesses?: number; // default 32
   maxWorkers?: number; // default 8 — WorkerPool limit
+  /** Dedicated pool for long-running MCP server Workers. Default 4. */
+  serverMaxWorkers?: number;
   /** Force inline mode (skip Worker detection) */
   forceInline?: boolean;
 }
@@ -50,6 +52,7 @@ export class ProcessManager {
   private fs?: AtuaFS;
   private maxProcesses: number;
   private pool: WorkerPool;
+  private serverPool: WorkerPool;
   private forceInline: boolean;
 
   constructor(config: ProcessManagerConfig = {}) {
@@ -57,6 +60,7 @@ export class ProcessManager {
     this.maxProcesses = config.maxProcesses ?? 32;
     this.forceInline = config.forceInline ?? false;
     this.pool = new WorkerPool({ maxWorkers: config.maxWorkers ?? 8 });
+    this.serverPool = new WorkerPool({ maxWorkers: config.serverMaxWorkers ?? 4 });
   }
 
   /**
@@ -339,19 +343,82 @@ export class ProcessManager {
     }
   }
 
+  /**
+   * Spawn a long-running server process in a dedicated Worker.
+   * Unlike spawn(), the Worker stays alive after code executes —
+   * it keeps listening for stdin messages (e.g. MCP JSON-RPC).
+   * Uses a dedicated server Worker pool separate from the exec/spawn pool.
+   */
+  async spawnServer(code: string, options: ProcessOptions = {}): Promise<AtuaProcess> {
+    if (this.processes.size >= this.maxProcesses) {
+      throw new Error(`Maximum process limit (${this.maxProcesses}) reached`);
+    }
+
+    const canUseWorker = !this.forceInline && await this.serverPool.isWorkerSupported();
+    if (!canUseWorker) {
+      throw new Error('Server processes require Worker support');
+    }
+
+    const pid = this.nextPid++;
+    const proc = new AtuaProcess(pid);
+    this.processes.set(pid, proc);
+
+    // Clean up when process exits
+    proc.on('exit', () => {
+      setTimeout(() => this.processes.delete(pid), 1000);
+    });
+
+    const handle = this.serverPool.spawn(pid);
+    const bridge = new WorkerBridge(handle, this.fs);
+    this.bridges.set(pid, bridge);
+
+    await bridge.waitReady();
+
+    if (proc.state === 'killed' || proc.state === 'exited') {
+      this.serverPool.terminate(pid);
+      this.bridges.delete(pid);
+      return proc;
+    }
+
+    proc._setState('running');
+
+    // Wire AtuaProcess.write() → WorkerBridge.writeStdin() → Worker stdin
+    proc.on('stdin', (data: string) => {
+      bridge.writeStdin(data);
+    });
+
+    // Start server mode — Worker stays alive after code runs
+    bridge.startServer(code, {
+      onStdout: (data) => proc._pushStdout(data),
+      onStderr: (data) => proc._pushStderr(data),
+      onExit: (exitCode) => {
+        if (proc.state === 'running') {
+          proc._exit(exitCode);
+        }
+        this.serverPool.release(pid);
+        this.bridges.delete(pid);
+      },
+    });
+
+    return proc;
+  }
+
   /** Send a signal to a process */
   kill(pid: number, signal: Signal = 'SIGTERM'): boolean {
     const proc = this.processes.get(pid);
     if (!proc) return false;
 
     // For Worker-based processes, use Worker.terminate() for SIGKILL
+    // Try both pools — process could be in either
     if (signal === 'SIGKILL') {
       this.pool.terminate(pid);
+      this.serverPool.terminate(pid);
       this.bridges.delete(pid);
     } else {
       // SIGTERM — send via MessagePort for graceful shutdown
       const signalNum = SIGNALS[signal] ?? 15;
       this.pool.signal(pid, signalNum);
+      this.serverPool.signal(pid, signalNum);
     }
 
     return proc.kill(signal);
@@ -384,6 +451,7 @@ export class ProcessManager {
   /** Clean up all Workers and resources */
   dispose(): void {
     this.pool.dispose();
+    this.serverPool.dispose();
   }
 
   /** Get the number of currently tracked processes */
